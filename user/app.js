@@ -295,7 +295,11 @@ noticeText.addEventListener('paste', (event) => {
   const blob = imageItem.getAsFile();
   if (!blob) return;
   event.preventDefault();
-  const type = ['image/jpeg', 'image/png', 'image/webp'].includes(blob.type) ? blob.type : 'image/png';
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(blob.type)) {
+    setError(t('fileError'));
+    return;
+  }
+  const type = blob.type;
   const extension = type === 'image/jpeg' ? 'jpg' : type === 'image/webp' ? 'webp' : 'png';
   chooseImage(new File([blob], `pasted-notice-${Date.now()}.${extension}`, { type }));
 });
