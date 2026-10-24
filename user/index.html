@@ -1,14 +1,119 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f7f8fb" />
-    <meta name="description" content="Understand public-service notices with plain-language explanations and source-aware action checklists." />
-    <title>FormSaathi AI — Understand Every Notice</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f8f5">
+  <meta name="description" content="Turn public-service notices into clear next steps with FormSaathi AI.">
+  <title>FormSaathi AI — Big paperwork. Clear next steps.</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="FormSaathi AI home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3.75h8l4 4v12.5H6z"/><path d="M14 3.75v4h4M9 13l2 2 4-4"/></svg></span>
+        <span class="brand-wordmark">FormSaathi <b>AI</b><small>NOTICE, UNDERSTOOD.</small></span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="#how" data-i18n="howLink">How it works</a>
+        <a href="#trust" data-i18n="trustLink">Privacy & trust</a>
+      </nav>
+      <div class="top-actions">
+        <span class="open-source"><span></span> Open source</span>
+        <button id="languageToggle" class="language-toggle" type="button" aria-label="Switch language">हिंदी</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow"><span class="sparkle">✳</span><span data-i18n="eyebrow">Clarity for every important notice</span></span>
+          <h1><span data-i18n="titleOne">Big paperwork.</span><br><em data-i18n="titleTwo">Clear next steps.</em></h1>
+          <p data-i18n="intro">Turn confusing public-service notices into plain-language explanations, important dates, and a checklist you can actually use.</p>
+          <div class="trust-row">
+            <span><span class="mini-icon">✓</span><span data-i18n="evidenceAware">Evidence-aware answers</span></span>
+            <span><span class="mini-icon">⌑</span><span data-i18n="privateByDesign">Private by design</span></span>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-ring ring-one"></div><div class="art-ring ring-two"></div>
+          <div class="notice-illustration">
+            <div class="illustration-cap"></div><div class="skeleton wide"></div><div class="skeleton"></div>
+            <div class="illustration-highlight">✓ <span data-i18n="deadlineIdentified">Deadline identified</span></div>
+            <div class="skeleton wide"></div><div class="skeleton short"></div>
+            <div class="illustration-highlight">✓ <span data-i18n="documentsListed">Documents listed</span></div>
+          </div>
+          <span class="float-label label-ai">✳ <span data-i18n="aiAssisted">AI assisted</span></span>
+          <span class="float-label label-source">✓ <span data-i18n="sourceLinked">Source linked</span></span>
+        </div>
+      </section>
+
+      <section class="workspace" aria-labelledby="analyzerTitle">
+        <div class="workspace-heading">
+          <div>
+            <span class="eyebrow">◎ <span data-i18n="analyzerEyebrow">NOTICE ANALYZER</span></span>
+            <h2 id="analyzerTitle" data-i18n="analyzerTitle">Your notice, made clearer</h2>
+            <p data-i18n="analyzerIntro">Paste the notice text or add a readable photo. We’ll organize it into a practical action brief.</p>
+          </div>
+          <span class="secure-pill">⌑ <span data-i18n="sourceFirst">Source first</span></span>
+        </div>
+
+        <form id="analyzeForm" class="analyzer">
+          <div class="input-column">
+            <div class="field-heading">
+              <label for="noticeText" data-i18n="pasteLabel">Paste notice text</label>
+              <button id="sampleButton" type="button" class="text-button" data-i18n="sampleButton">Try sample</button>
+            </div>
+            <textarea id="noticeText" maxlength="30000" rows="8" data-i18n-placeholder="noticePlaceholder" placeholder="Paste a government notice, scholarship instructions, admission circular, or public-service document…"></textarea>
+            <div class="textarea-meta">
+              <span><span id="characterCount">0</span> / 30,000</span>
+              <button id="clearButton" type="button" class="text-button" data-i18n="clearButton">Clear</button>
+            </div>
+            <div class="or-divider"><span data-i18n="or">OR</span></div>
+            <input id="imageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+            <button id="uploadZone" class="upload-zone" type="button">
+              <span class="upload-symbol">↥</span>
+              <span class="upload-copy"><strong data-i18n="uploadTitle">Upload or paste a notice image</strong><small data-i18n="uploadHint">JPG, PNG or WEBP · up to 5 MB · Ctrl+V also works</small></span>
+              <span class="upload-clip">⌁</span>
+            </button>
+            <div id="imagePreview" class="image-preview" hidden>
+              <img id="previewImage" alt="Selected notice preview">
+              <div class="preview-details"><strong id="fileName"></strong><small id="fileSize"></small></div>
+              <button id="removeImage" type="button" class="text-button" data-i18n="removeImage">Remove</button>
+            </div>
+            <div class="form-footer">
+              <div class="language-choice"><span data-i18n="explainIn">Explain in</span>
+                <button type="button" class="language-option selected" data-language="en">English</button>
+                <button type="button" class="language-option" data-language="hi">हिंदी</button>
+              </div>
+              <button id="analyzeButton" type="submit" class="primary-button" disabled>
+                <span data-i18n="analyzeButton">Understand this notice</span><span aria-hidden="true">↗</span>
+              </button>
+            </div>
+            <div id="errorBox" class="error-box" role="alert" hidden></div>
+          </div>
+
+          <aside class="how-panel" id="how">
+            <h3 data-i18n="howTitle">How it works</h3>
+            <div class="how-step"><b>01</b><div><strong data-i18n="stepOneTitle">Add a notice</strong><p data-i18n="stepOneText">Paste instructions or add a readable notice image.</p></div></div>
+            <div class="how-step"><b>02</b><div><strong data-i18n="stepTwoTitle">Find key details</strong><p data-i18n="stepTwoText">Organize dates, document mentions, and eligibility clues.</p></div></div>
+            <div class="how-step"><b>03</b><div><strong data-i18n="stepThreeTitle">Verify the source</strong><p data-i18n="stepThreeText">Review quoted evidence and compare it with the original.</p></div></div>
+            <div class="aside-note"><span>ⓘ</span><p data-i18n="disclaimer">Helpful, not authoritative. Confirm deadlines, fees, eligibility, and document requirements against the official notice.</p></div>
+          </aside>
+        </form>
+      </section>
+
+      <section id="results" class="results" aria-live="polite" hidden></section>
+
+      <section class="trust-panel" id="trust">
+        <span class="trust-shield">✓</span>
+        <div><strong data-i18n="trustTitle">Helpful, not authoritative.</strong><p data-i18n="trustText">FormSaathi AI is independent and is not affiliated with any government body. If AI is configured, extracted notice text is sent to your selected model provider.</p></div>
+        <div class="trust-bullets"><small>✓ <span data-i18n="noStorage">No permanent upload storage by default</span></small><small>✓ <span data-i18n="serverKeys">Server-side AI credentials</span></small></div>
+      </section>
+    </main>
+    <footer><a class="footer-brand" href="#">▤ FormSaathi AI</a><span data-i18n="footerNote">Independent information tool · Not an official government website</span><a href="https://github.com/Shivam-Sharma2009/formsathi_ai" target="_blank" rel="noopener noreferrer">View source ↗</a></footer>
+  </div>
+</body>
 </html>
