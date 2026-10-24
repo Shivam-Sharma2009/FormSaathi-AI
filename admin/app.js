@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    const localDevelopmentOrigin = /^https?:\\/\\/(localhost|127\\.0\\.0\\.1)(:\\d+)?$/.test(origin);
+    const localDevelopmentOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     if (CLIENT_ORIGINS.includes(origin) || localDevelopmentOrigin) return callback(null, true);
     return callback(new Error('Origin not allowed by CORS'));
   }
