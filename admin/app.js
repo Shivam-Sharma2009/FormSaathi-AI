@@ -12,6 +12,8 @@ const MAX_TEXT_CHARS = 30000;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 app.disable('x-powered-by');
+// Vercel runs the function behind a trusted proxy; this is needed for rate-limit IP detection.
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
@@ -123,9 +125,8 @@ async function analyzeWithAI(text, language) {
     body: JSON.stringify({
       model,
       temperature: 0.2,
-      response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT + (language === 'hi' ? ' Respond in clear, simple Hindi.' : ' Respond in clear, simple English.') },
+        { role: 'system', content: SYSTEM_PROMPT + ' Return exactly one raw JSON object. Do not use Markdown fences, preambles, or commentary.' + (language === 'hi' ? ' Respond in clear, simple Hindi.' : ' Respond in clear, simple English.') },
         { role: 'user', content: `Analyze this notice. Return only the specified JSON.\n\n<NOTICE_TEXT>\n${text.slice(0, MAX_TEXT_CHARS)}\n</NOTICE_TEXT>` }
       ]
     }),
