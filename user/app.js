@@ -384,8 +384,8 @@ form.addEventListener('submit', async (event) => {
   }
 });
 
-let savedTheme = 'light';
-try { savedTheme = localStorage.getItem(THEME_KEY) || 'light'; } catch {}
+let savedTheme = 'dark';
+try { savedTheme = localStorage.getItem(THEME_KEY) || 'dark'; } catch {}
 applyTheme(savedTheme);
 applyLanguage();
 updateFormState();
