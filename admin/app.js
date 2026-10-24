@@ -143,7 +143,7 @@ async function analyzeWithAI(text, language) {
 
   const payload = await response.json();
   const content = payload?.choices?.[0]?.message?.content;
-  if (typeof content !== 'string') throw Object.assign(new Error('The AI provider returned an unexpected response.'), { status: 502 });
+  if (typeof content !== 'string' || !content.trim()) throw Object.assign(new Error('The AI provider returned an empty or unexpected response. Check AI_MODEL availability and provider quota.'), { status: 502 });
 
   let parsed;
   const cleanedContent = content.trim()
