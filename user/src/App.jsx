@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, BookOpenText, Check, CheckCircle2, Clock3, FileCheck2, FileText, Languages, LoaderCircle, LockKeyhole, Paperclip, ScanText, ShieldCheck, Sparkles, UploadCloud, AlertTriangle, CircleHelp } from 'lucide-react';
 
 const SAMPLE = `Post-Matric Scholarship Notice 2026-27
@@ -9,11 +9,13 @@ Required documents may include the latest marksheet, income certificate, categor
 Applications with missing documents may be returned for correction.
 Students should verify the final eligibility conditions and submission status on the official portal.`;
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\\/+$/, '');
+
 const TEXT = {
   en: {
     label: 'Clarity for every important notice', title1: 'Big paperwork.', title2: 'Clear next steps.',
     intro: 'Turn confusing public-service notices into simple explanations, important dates, and a checklist you can actually use.',
-    paste: 'Paste notice text', sample: 'Try sample', placeholder: 'Paste a government notice, scholarship instructions, admission circular, or public-service document…',
+    paste: 'Paste notice text', sample: 'Try sample', placeholder: 'Paste a notice here. You can also copy a notice image and press Ctrl+V, or upload JPG, PNG or WEBP…',
     upload: 'Upload a notice image', fileHint: 'JPG, PNG or WEBP · up to 5 MB', language: 'Explain in', analyze: 'Understand this notice',
     busy: 'Reading your notice…', clear: 'Clear', empty: 'Your notice, made clearer', emptyText: 'Paste text or upload a clear photo. FormSaathi will organize key information into a practical action brief.',
     steps: 'How it works', step1: 'Add a notice', step2: 'Find key details', step3: 'Verify the source',
@@ -31,7 +33,7 @@ const TEXT = {
   hi: {
     label: 'हर ज़रूरी नोटिस को आसान भाषा में समझें', title1: 'नोटिस की उलझन।', title2: 'अगले कदम साफ़।',
     intro: 'जटिल सरकारी नोटिस को सरल जानकारी, ज़रूरी तारीखों और काम की चेकलिस्ट में बदलें।',
-    paste: 'नोटिस का टेक्स्ट पेस्ट करें', sample: 'उदाहरण देखें', placeholder: 'सरकारी नोटिस, स्कॉलरशिप निर्देश, एडमिशन सर्कुलर या दस्तावेज़ यहाँ पेस्ट करें…',
+    paste: 'नोटिस का टेक्स्ट पेस्ट करें', sample: 'उदाहरण देखें', placeholder: 'नोटिस का टेक्स्ट पेस्ट करें। तस्वीर कॉपी करके Ctrl+V दबाएँ या JPG, PNG या WEBP अपलोड करें…',
     upload: 'नोटिस की तस्वीर अपलोड करें', fileHint: 'JPG, PNG या WEBP · अधिकतम 5 MB', language: 'भाषा', analyze: 'नोटिस समझें',
     busy: 'नोटिस पढ़ रहे हैं…', clear: 'साफ़ करें', empty: 'नोटिस अब समझना आसान', emptyText: 'टेक्स्ट पेस्ट करें या साफ़ तस्वीर अपलोड करें। FormSaathi ज़रूरी जानकारी को चेकलिस्ट में व्यवस्थित करेगा।',
     steps: 'कैसे काम करता है', step1: 'नोटिस जोड़ें', step2: 'ज़रूरी जानकारी निकालें', step3: 'मूल स्रोत से मिलान करें',
@@ -69,6 +71,10 @@ export default function App() {
   const fileRef = useRef(null);
   const t = TEXT[language];
 
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview);
+  }, [preview]);
+
   function chooseFile(next) {
     if (!next) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(next.type) || next.size > 5 * 1024 * 1024) {
@@ -76,9 +82,20 @@ export default function App() {
       return;
     }
     setError('');
-    if (preview) URL.revokeObjectURL(preview);
     setFile(next);
     setPreview(URL.createObjectURL(next));
+  }
+
+  function handleNoticePaste(event) {
+    const items = Array.from(event.clipboardData?.items || []);
+    const imageItem = items.find((item) => item.type.startsWith('image/'));
+    if (!imageItem) return;
+    const blob = imageItem.getAsFile();
+    if (!blob) return;
+    event.preventDefault();
+    const type = ['image/jpeg', 'image/png', 'image/webp'].includes(blob.type) ? blob.type : 'image/png';
+    const extension = type === 'image/jpeg' ? 'jpg' : type === 'image/webp' ? 'webp' : 'png';
+    chooseFile(new File([blob], `pasted-notice-${Date.now()}.${extension}`, { type }));
   }
 
   function clear() {
@@ -95,7 +112,7 @@ export default function App() {
     body.append('language', language);
     if (file) body.append('image', file);
     try {
-      const response = await fetch('/api/analyze', { method: 'POST', body });
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, { method: 'POST', body });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || t.error);
       setResult(payload);
@@ -125,7 +142,7 @@ export default function App() {
         <form className="analyzer" onSubmit={analyze}>
           <div className="input-side">
             <div className="field-heading"><label htmlFor="notice">{t.paste}</label><button type="button" className="text-btn" onClick={() => { setNotice(SAMPLE); setError(''); }}>{t.sample}</button></div>
-            <textarea id="notice" value={notice} onChange={(e) => setNotice(e.target.value)} maxLength={30000} rows={8} placeholder={t.placeholder} />
+            <textarea id="notice" value={notice} onChange={(e) => setNotice(e.target.value)} onPaste={handleNoticePaste} maxLength={30000} rows={8} placeholder={t.placeholder} />
             <div className="textarea-meta"><span>{notice.length.toLocaleString()} / 30,000</span><button type="button" className="text-btn" onClick={clear}>{t.clear}</button></div>
             <div className="or"><span>OR</span></div>
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => chooseFile(e.target.files?.[0])} />
