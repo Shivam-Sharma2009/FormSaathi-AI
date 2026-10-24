@@ -1,0 +1,51 @@
+name: formsaathi-ai
+region: blr
+ingress:
+  rules:
+    - component:
+        name: admin
+      match:
+        path:
+          prefix: /api
+    - component:
+        name: user
+      match:
+        path:
+          prefix: /
+services:
+  - name: admin
+    github:
+      repo: Shivam-Sharma2009/formsathi_ai
+      branch: main
+      deploy_on_push: true
+    source_dir: admin
+    environment_slug: node-js
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    build_command: npm install
+    run_command: npm start
+    http_port: 8080
+    envs:
+      - key: PORT
+        value: "8080"
+        scope: RUN_TIME
+        type: GENERAL
+      - key: NODE_ENV
+        value: production
+        scope: RUN_TIME
+        type: GENERAL
+      - key: OCR_LANGS
+        value: eng+hin
+        scope: RUN_TIME
+        type: GENERAL
+static_sites:
+  - name: user
+    github:
+      repo: Shivam-Sharma2009/formsathi_ai
+      branch: main
+      deploy_on_push: true
+    source_dir: user
+    environment_slug: node-js
+    build_command: npm install && npm run build
+    output_dir: dist
+    index_document: index.html
