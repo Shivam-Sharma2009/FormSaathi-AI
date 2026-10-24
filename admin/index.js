@@ -19,7 +19,7 @@ app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     const allowedOrigins = CLIENT_ORIGIN.split(',').map((value) => value.trim());
-    const localDevelopmentOrigin = /^https?:\\/\\/(localhost|127\\.0\\.0\\.1)(:\\d+)?$/.test(origin);
+    const localDevelopmentOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     if (allowedOrigins.includes(origin) || localDevelopmentOrigin) return callback(null, true);
     return callback(new Error('Origin not allowed by CORS'));
   }
