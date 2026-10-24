@@ -12,11 +12,12 @@ FormSaathi AI helps people understand public-service notices, scholarship circul
 formsathi_ai/
 ├── user/                   # Plain HTML, CSS, and JavaScript frontend
 ├── admin/                  # Node.js + Express API, OCR, AI integration
-├── .do/app.yaml            # DigitalOcean App Platform deployment spec
+├── netlify.toml            # Free static frontend deployment
+├── render.yaml             # Free backend service blueprint
 └── .github/workflows/ci.yml
 ```
 
-The user interface has no React, Vite, or frontend framework dependency. It consists of `user/index.html`, `user/styles.css`, and `user/app.js`.
+The browser UI has no React, Vite, or frontend framework dependency. It consists of `user/index.html`, `user/styles.css`, and `user/app.js`.
 
 ## Features
 
@@ -28,22 +29,22 @@ The user interface has no React, Vite, or frontend framework dependency. It cons
 - Hosted open-weight model integration through an OpenAI-compatible chat-completions API.
 - Clearly labelled rule-based demo mode when no model is configured.
 - AI-generated evidence quotes are checked against the submitted source text; unsupported quotes are removed.
-- Uploads are processed in memory and are not intentionally saved as permanent files.
+- Uploaded images are processed in memory and are not intentionally saved as permanent files.
 - API keys remain on the backend.
 
 ## Requirements
 
-- Node.js 20 or newer
-- Python 3 (for the built-in static development server) or VS Code Live Server
+- Node.js 20 or newer for the backend
+- A browser and Python 3 (or VS Code Live Server) for local static frontend preview
 - For real AI mode: access to a compatible hosted inference API and an available open-weight model
 
 ## Run locally
 
 Open two terminals from the repository root.
 
-### 1. Start the API
+### 1. Start the backend
 
-In Terminal 1:
+Terminal 1:
 
 ```powershell
 cd admin
@@ -56,18 +57,16 @@ The API runs at `http://localhost:3001`. Verify it at [http://localhost:3001/api
 
 ### 2. Start the plain HTML website
 
-In Terminal 2:
+Terminal 2:
 
 ```powershell
 cd user
-python -m http.server 5173
+py -m http.server 5173
 ```
 
-On Windows, if `python` is not recognized, try `py -m http.server 5173`. Open [http://localhost:5173](http://localhost:5173).
+If `py` is not recognized, try `python -m http.server 5173`. Open [http://localhost:5173](http://localhost:5173).
 
-Alternatively, open the `user/` folder in VS Code and use the Live Server extension. The backend accepts local development origins, and the frontend calls the API at port 3001 on localhost.
-
-Do not open `index.html` by double-clicking it as a `file://` URL; browsers restrict API requests from local files.
+Alternatively, open `user/` in VS Code and use the Live Server extension. The API allows localhost development origins. Do not double-click `index.html` as a `file://` URL.
 
 ## Configure a hosted open-weight model
 
@@ -77,25 +76,68 @@ Set these variables in `admin/.env`:
 - `AI_API_KEY`: provider API key, if required.
 - `AI_MODEL`: exact model identifier supported by the provider.
 - `OCR_LANGS`: optional OCR language string; defaults to `eng+hin`.
-- `PORT`: optional backend port; defaults to `3001`.
+- `PORT`: optional local backend port; defaults to `3001`.
 - `CLIENT_ORIGIN`: comma-separated allowed frontend origins; defaults to `http://localhost:5173`.
 
-Use an open-weight model that your provider actually makes available. Price, credits, free quotas, data retention, and supported parameters vary. Never expose keys in frontend code or commit `admin/.env`.
+Use a model that your provider actually makes available. Prices, credits, quotas, data-retention terms, and supported parameters vary. Never expose keys in frontend files or commit `admin/.env`.
 
 Without `AI_BASE_URL` and `AI_MODEL`, the app returns rule-based demo results with a visible Demo Mode label. These results are not AI-generated.
 
 ### Image OCR note
 
-On first image analysis, Tesseract.js may download the configured OCR language data into its runtime cache. This is OCR language data, not a local generative AI model. Internet access is needed for the first uncached OCR run. If you use only pasted text, OCR data is not needed.
+On first image analysis, Tesseract.js may download configured OCR language data into its runtime cache. This is OCR language data, not a local generative AI model. Internet access is needed for the first uncached OCR run. If you only use pasted text, OCR data is not needed.
 
 ## API endpoints
 
-- `GET /api/health`: service status, AI configuration indicator, and OCR language setting.
-- `POST /api/analyze`: multipart fields `text`, `language` (`en` or `hi`), and optional file field `image`.
+- `GET /api/health` or `GET /health`: service health, AI configuration indicator, and OCR language setting.
+- `POST /api/analyze` or `POST /analyze`: multipart fields `text`, `language` (`en` or `hi`), and optional file field `image`.
+
+## Deploy free: Render backend + Netlify frontend
+
+This setup keeps the static website and Node.js API separate. The free services have usage limits and are suitable for a demo rather than production-critical use.
+
+### A. Deploy the backend on Render
+
+1. Sign in to Render and choose **New → Blueprint** (or create a **Web Service** manually).
+2. Connect this GitHub repository: `Shivam-Sharma2009/formsathi_ai`.
+3. If using Blueprint, use the repository's `render.yaml`. It points to `admin/`, uses `npm install` and `npm start`, and checks `/health`.
+4. Choose the **Free** service plan and deploy.
+5. Copy the Render service URL, for example `https://your-service.onrender.com`.
+
+The Render Free service sleeps after 15 minutes without inbound traffic; the first request after sleep can take around a minute to wake it. Review Render's current free-instance limits before relying on it.
+
+### B. Deploy the frontend on Netlify
+
+1. Sign in to Netlify and choose **Add new site → Import an existing project**.
+2. Connect GitHub and choose `Shivam-Sharma2009/formsathi_ai`.
+3. Netlify reads `netlify.toml`; the published site is the static `user/` folder. There is no framework build step.
+4. Deploy the site and copy its HTTPS URL, for example `https://your-site.netlify.app`.
+
+The Netlify Free plan is $0 with a monthly credit limit. Check the current usage limits and the platform's eligibility terms for your location. Do not add a payment method or enable a paid plan just for this project.
+
+### C. Connect the site to the API
+
+These two values must match the actual URLs created by your accounts:
+
+1. Edit `user/index.html` and set this meta tag's `content` to your Render service origin, with no trailing slash:
+
+   ```html
+   <meta name="formsaathi-api-base" content="https://YOUR-SERVICE.onrender.com">
+   ```
+
+2. In Render's service environment settings, set `CLIENT_ORIGIN` to your exact Netlify site origin, e.g. `https://YOUR-SITE.netlify.app`.
+3. Save the Render environment change and redeploy if prompted.
+4. Commit and push the `user/index.html` update. Netlify will redeploy automatically.
+5. Open the Netlify URL and verify `https://YOUR-SERVICE.onrender.com/api/health` returns JSON with `status: "ok"`.
+6. Test a non-sensitive sample notice in the website.
+
+Keep `AI_API_KEY` only in Render's backend environment settings, mark it secret if the dashboard offers that choice, and never place it in HTML or JavaScript. Until an AI provider is configured, the site runs in clearly labelled demo mode.
+
+Both services' free tiers have limits; Render's API can be slow after idle periods. Neither a GitHub repository nor a deployment configuration by itself means the website is live.
 
 ## Tests
 
-The GitHub Actions workflow checks JavaScript syntax, verifies the plain static assets, builds the backend, and runs API smoke tests. You can run the backend checks locally:
+The GitHub Actions workflow checks the static frontend files and JavaScript syntax, then runs backend syntax and API smoke tests. To run the backend checks locally:
 
 ```powershell
 cd admin
@@ -103,18 +145,6 @@ npm install
 node --check index.js
 npm test
 ```
-
-## Deploy to DigitalOcean App Platform
-
-A starter App Platform specification is provided at `.do/app.yaml`. Create an App from this GitHub repository and select the specification. Review the component settings, region availability, and billing before deploying. The spec routes `/api/*` to the admin service and other paths to the static website.
-
-After creating the App:
-1. Add `AI_BASE_URL`, `AI_API_KEY`, and `AI_MODEL` as backend service environment variables in the DigitalOcean dashboard. Mark the API key as a secret.
-2. Deploy and wait for the deployment to finish successfully.
-3. Open the assigned app URL and check `/api/health`.
-4. Submit a non-sensitive sample notice to test analysis.
-
-Backend hosting may incur charges. Do not create cloud resources without reviewing current pricing and available credits. A repository or deployment specification alone does not mean the application is live.
 
 ## Privacy and limitations
 
