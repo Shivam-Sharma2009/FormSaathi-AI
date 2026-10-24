@@ -4,6 +4,7 @@ ingress:
   rules:
     - component:
         name: admin
+        preserve_path_prefix: true
       match:
         path:
           prefix: /api
@@ -45,7 +46,7 @@ static_sites:
       branch: main
       deploy_on_push: true
     source_dir: user
-    environment_slug: node-js
+    environment_slug: html
     build_command: mkdir -p dist && cp index.html styles.css app.js dist/
     output_dir: dist
     index_document: index.html
