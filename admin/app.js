@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { createWorker } from 'tesseract.js';
 
 const app = express();
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN?.trim() || 'http://localhost:5173';
+const CLIENT_ORIGINS = (process.env.CLIENT_ORIGIN || 'https://formsaathi-ai-user.vercel.app,http://localhost:5173').split(',').map((origin) => origin.trim()).filter(Boolean);
 const OCR_LANGS = process.env.OCR_LANGS?.trim() || 'eng+hin';
 const MAX_TEXT_CHARS = 30000;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -16,8 +16,8 @@ app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    const localDevelopmentOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-    if (origin === CLIENT_ORIGIN || localDevelopmentOrigin) return callback(null, true);
+    const localDevelopmentOrigin = /^https?:\\/\\/(localhost|127\\.0\\.0\\.1)(:\\d+)?$/.test(origin);
+    if (CLIENT_ORIGINS.includes(origin) || localDevelopmentOrigin) return callback(null, true);
     return callback(new Error('Origin not allowed by CORS'));
   }
 }));
