@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<defs>
+ <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#26e8ff"/><stop offset=".48" stop-color="#7368ff"/><stop offset="1" stop-color="#ff9c28"/></linearGradient>
+ <linearGradient id="brain" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#52f4ff"/><stop offset="1" stop-color="#b84bff"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect width="128" height="128" rx="25" fill="#06132f"/>
+<rect x="7" y="7" width="114" height="114" rx="21" fill="#071b3d"/>
+<g fill="none" stroke="url(#neon)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+ <path d="M29 94V34Q29 22 41 22H65L76 34 65 46H47V59H60V73H47V94"/>
+ <path d="M34 82H47M34 69H47M34 56H42M41 22V31H56M47 94H64"/>
+ <path d="M83 23L99 41M99 23L83 41M88 23H105L93 32H105" stroke-width="5"/>
+ <path d="M82 81L98 99M98 81L82 99M87 81H104L92 90H104" stroke-width="5"/>
+ <path d="M54 60C54 52 64 49 70 55C76 47 87 52 87 60C96 62 96 75 87 77C84 85 72 84 69 79C61 84 52 77 56 70C49 67 50 61 54 60Z" stroke="url(#brain)" stroke-width="2.5"/>
+ <path d="M62 58L69 63 65 71 74 75 80 65 87 63M69 63L78 57M74 75L72 81M80 65L88 72" stroke-width="1.8"/>
+</g>
+<g fill="#39e7ff"><circle cx="54" cy="60" r="2.5"/><circle cx="69" cy="63" r="2.5"/><circle cx="78" cy="57" r="2.5"/><circle cx="80" cy="65" r="2.5"/><circle cx="74" cy="75" r="2.5"/><circle cx="65" cy="71" r="2.5"/></g>
+</svg>
