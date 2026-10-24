@@ -15,7 +15,15 @@ const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 app.disable('x-powered-by');
 app.use(helmet());
-app.use(cors({ origin: CLIENT_ORIGIN.split(',').map((s) => s.trim()) }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowedOrigins = CLIENT_ORIGIN.split(',').map((value) => value.trim());
+    const localDevelopmentOrigin = /^https?:\\/\\/(localhost|127\\.0\\.0\\.1)(:\\d+)?$/.test(origin);
+    if (allowedOrigins.includes(origin) || localDevelopmentOrigin) return callback(null, true);
+    return callback(new Error('Origin not allowed by CORS'));
+  }
+}));
 app.use(express.json({ limit: '100kb' }));
 app.use('/api/', rateLimit({ windowMs: 60_000, limit: 20, standardHeaders: 'draft-7', legacyHeaders: false }));
 
