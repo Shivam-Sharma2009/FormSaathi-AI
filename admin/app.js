@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { createWorker } from 'tesseract.js';
 
 const app = express();
-const CLIENT_ORIGINS = (process.env.CLIENT_ORIGIN || 'https://formsaathi-ai-user.vercel.app,http://localhost:5173').split(',').map((origin) => origin.trim()).filter(Boolean);
+const CLIENT_ORIGINS = [...new Set([...(process.env.CLIENT_ORIGIN || '').split(',').map((origin) => origin.trim()).filter(Boolean), 'https://formsaathi-ai-user.vercel.app', 'http://localhost:5173'])];
 const OCR_LANGS = process.env.OCR_LANGS?.trim() || 'eng+hin';
 const MAX_TEXT_CHARS = 30000;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
