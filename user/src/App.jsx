@@ -9,7 +9,7 @@ Required documents may include the latest marksheet, income certificate, categor
 Applications with missing documents may be returned for correction.
 Students should verify the final eligibility conditions and submission status on the official portal.`;
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\\/+$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
 
 const TEXT = {
   en: {
