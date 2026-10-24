@@ -1,5 +1,6 @@
 {
   "functions": {
-    "source": "admin"
+    "source": "admin",
+    "runtime": "nodejs20"
   }
 }
