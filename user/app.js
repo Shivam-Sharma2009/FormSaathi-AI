@@ -74,6 +74,22 @@ let previewUrl = '';
 let currentResult = null;
 let busy = false;
 
+
+const THEME_KEY = 'formsaathi-theme';
+
+function applyTheme(theme) {
+  const selectedTheme = theme === 'dark' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = selectedTheme;
+  const toggle = $('themeToggle');
+  if (toggle) {
+    const dark = selectedTheme === 'dark';
+    toggle.textContent = dark ? '☀' : '☾';
+    toggle.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+    toggle.setAttribute('title', dark ? 'Switch to light mode' : 'Switch to dark mode');
+    toggle.setAttribute('aria-pressed', String(dark));
+  }
+}
+
 function t(key) {
   return TRANSLATIONS[language][key] || TRANSLATIONS.en[key] || key;
 }
@@ -274,6 +290,12 @@ function setLoading(next) {
   updateFormState();
 }
 
+$('themeToggle').addEventListener('click', () => {
+  const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem(THEME_KEY, nextTheme); } catch {}
+  applyTheme(nextTheme);
+});
+
 $('languageToggle').addEventListener('click', () => {
   language = language === 'en' ? 'hi' : 'en';
   applyLanguage();
@@ -362,6 +384,9 @@ form.addEventListener('submit', async (event) => {
   }
 });
 
+let savedTheme = 'light';
+try { savedTheme = localStorage.getItem(THEME_KEY) || 'light'; } catch {}
+applyTheme(savedTheme);
 applyLanguage();
 updateFormState();
 window.addEventListener('beforeunload', revokePreview);
