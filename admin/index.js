@@ -83,7 +83,7 @@ const SYSTEM_PROMPT = `You are FormSaathi AI, a careful assistant that explains 
 function verifiedEvidence(value, sourceText) {
   if (typeof value !== 'string' || !value.trim()) return null;
   const candidate = value.trim().slice(0, 600);
-  const normalize = (input) => input.replace(/\\s+/g, ' ').trim().toLocaleLowerCase();
+  const normalize = (input) => input.replace(/\s+/g, ' ').trim().toLocaleLowerCase();
   return normalize(sourceText).includes(normalize(candidate)) ? candidate : null;
 }
 
@@ -141,7 +141,7 @@ async function analyzeWithAI(text, language) {
 
   let parsed;
   try {
-    parsed = JSON.parse(content.replace(/^\\s*```(?:json)?\\s*/i, '').replace(/\\s*```\\s*$/, ''));
+    parsed = JSON.parse(content.replace(/^\s*```(?:json)?\s*/i, '').replace(/\s*```\s*$/, ''));
   } catch {
     throw Object.assign(new Error('The AI provider returned invalid structured data. Please retry.'), { status: 502 });
   }
