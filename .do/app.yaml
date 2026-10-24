@@ -46,6 +46,6 @@ static_sites:
       deploy_on_push: true
     source_dir: user
     environment_slug: node-js
-    build_command: npm install && npm run build
+    build_command: mkdir -p dist && cp index.html styles.css app.js dist/
     output_dir: dist
     index_document: index.html
