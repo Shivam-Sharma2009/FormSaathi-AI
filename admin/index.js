@@ -37,7 +37,7 @@ const upload = multer({
   }
 });
 
-app.get('/api/health', (_req, res) => {
+app.get(['/api/health', '/health'], (_req, res) => {
   res.json({
     status: 'ok',
     service: 'formsaathi-admin',
@@ -172,7 +172,7 @@ async function analyzeWithAI(text, language) {
   };
 }
 
-app.post('/api/analyze', upload.single('image'), async (req, res, next) => {
+app.post(['/api/analyze', '/analyze'], upload.single('image'), async (req, res, next) => {
   try {
     const language = req.body?.language === 'hi' ? 'hi' : 'en';
     let text = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
