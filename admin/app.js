@@ -134,9 +134,23 @@ async function analyzeWithAI(text, language) {
   });
 
   if (!response.ok) {
+    const providerBody = await response.text().catch(() => '');
+    let providerMessage = '';
+    try {
+      const parsedError = JSON.parse(providerBody);
+      providerMessage = parsedError?.error?.message || parsedError?.message || '';
+    } catch {
+      providerMessage = providerBody.slice(0, 500);
+    }
+    // Log provider diagnostics without logging the API key or request headers.
+    console.error('AI provider request failed:', JSON.stringify({
+      status: response.status,
+      model,
+      message: String(providerMessage).slice(0, 500)
+    }));
     const error = new Error(response.status === 429
-      ? 'The AI provider rate limit was reached. Try again later.'
-      : 'The AI provider could not complete the analysis. Check its configuration and status.');
+      ? 'The AI provider rate limit was reached. Check your Gemini quota and try again.'
+      : `The AI provider returned HTTP ${response.status}. Check the backend runtime logs for the provider error.`);
     error.status = response.status === 429 ? 429 : 502;
     throw error;
   }
