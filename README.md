@@ -26,7 +26,7 @@ The browser UI has no React, Vite, or frontend framework dependency. It consists
 - OCR for English and Hindi image text (configurable).
 - Extract key points, date mentions, document requirements, eligibility clues, and next steps.
 - English or Hindi explanations.
-- Hosted open-weight model integration through an OpenAI-compatible chat-completions API.
+- Hosted open-weight model integration through an OpenAI-compatible chat-completions API. The default example configuration targets DigitalOcean Serverless Inference with `openai-gpt-oss-20b`.
 - Clearly labelled rule-based demo mode when no model is configured.
 - AI-generated evidence quotes are checked against the submitted source text; unsupported quotes are removed.
 - Uploaded images are processed in memory and are not intentionally saved as permanent files.
@@ -70,18 +70,20 @@ Alternatively, open `user/` in VS Code and use the Live Server extension. The AP
 
 ## Configure a hosted open-weight model
 
-Set these variables in `admin/.env`:
+Set these variables in `admin/.env`. The checked-in `.env.example` provides a starter configuration for DigitalOcean Serverless Inference:
 
-- `AI_BASE_URL`: base URL for an OpenAI-compatible API or a full `/chat/completions` endpoint.
-- `AI_API_KEY`: provider API key, if required.
-- `AI_MODEL`: exact model identifier supported by the provider.
+- `AI_BASE_URL=https://inference.do-ai.run/v1`
+- `AI_API_KEY`: a DigitalOcean Inference model access key (keep it secret).
+- `AI_MODEL=openai-gpt-oss-20b`
+
+DigitalOcean's text inference endpoint is OpenAI-compatible. If you change providers, update the base URL, key, and exact model ID accordingly. Check the current Model Catalog for supported models and the current credit balance before testing.
 - `OCR_LANGS`: optional OCR language string; defaults to `eng+hin`.
 - `PORT`: optional local backend port; defaults to `3001`.
 - `CLIENT_ORIGIN`: comma-separated allowed frontend origins; defaults to `http://localhost:5173`.
 
-Use a model that your provider actually makes available. Prices, credits, quotas, data-retention terms, and supported parameters vary. Never expose keys in frontend files or commit `admin/.env`.
+Use a model that your provider actually makes available. DigitalOcean's inference API is usage-priced; the account may show promotional inference credits, but check the current balance and model rates before testing. The hackathon page in your event lists a DigitalOcean Best Open-Source AI Project prize, making the open-weight model a central part of the demo a strong fit. Prices, credits, quotas, data-retention terms, and supported parameters vary. Never expose keys in frontend files or commit `admin/.env`.
 
-Without `AI_BASE_URL` and `AI_MODEL`, the app returns rule-based demo results with a visible Demo Mode label. These results are not AI-generated.
+Without `AI_BASE_URL` and `AI_MODEL`, the app returns rule-based demo results with a visible Demo Mode label. These results are not AI-generated. To use the DigitalOcean example, create a model access key in the Inference section of the DigitalOcean dashboard, put it in `admin/.env` as `AI_API_KEY`, and restart the backend.
 
 ### Image OCR note
 
@@ -94,7 +96,7 @@ On first image analysis, Tesseract.js may download configured OCR language data 
 
 ## Deploy free: Render backend + Netlify frontend
 
-This setup keeps the static website and Node.js API separate. The free services have usage limits and are suitable for a demo rather than production-critical use.
+This setup keeps the static website and Node.js API separate. The free services have usage limits and are suitable for a demo rather than production-critical use. Use DigitalOcean for open-weight model inference, not paid App Platform hosting, if you do not have a payment method available.
 
 ### A. Deploy the backend on Render
 
