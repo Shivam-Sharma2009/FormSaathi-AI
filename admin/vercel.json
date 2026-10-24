@@ -8,10 +8,7 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 60,
-      "includeFiles": [
-        "node_modules/tesseract.js/**/*",
-        "node_modules/tesseract.js-core/**/*"
-      ]
+      "includeFiles": "node_modules/{tesseract.js,tesseract.js-core}/**/*"
     }
   }
 }
