@@ -250,7 +250,17 @@ app.post(['/api/analyze', '/analyze'], upload.single('image'), async (req, res, 
     if (!text) return res.status(400).json({ error: 'Paste notice text or upload a readable image.' });
     if (text.length > MAX_TEXT_CHARS) return res.status(413).json({ error: `Notice text is too long. Limit it to ${MAX_TEXT_CHARS.toLocaleString()} characters.` });
 
-    const analysis = await analyzeWithAI(text, language);
+    let analysis;
+    try {
+      analysis = await analyzeWithAI(text, language);
+    } catch (aiError) {
+      // Keep the demo usable for submissions when the external AI provider is unavailable or out of credits.
+      console.error('AI analysis unavailable; returning demo analysis:', aiError.message);
+      analysis = demoAnalysis(text, language);
+      analysis.caveats.unshift(language === 'hi'
+        ? 'AI सेवा अभी उपलब्ध नहीं है; यह नियम-आधारित डेमो विश्लेषण है, AI द्वारा सत्यापित नहीं। महत्वपूर्ण जानकारी मूल आधिकारिक नोटिस से जाँचें।'
+        : 'AI service is unavailable right now; this is a rule-based demo analysis, not AI-verified. Check important details against the original official notice.');
+    }
     return res.json({ ...analysis, extractedText: extractedText || null, sourceTextLength: text.length });
   } catch (error) {
     return next(error);
