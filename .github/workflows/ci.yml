@@ -34,7 +34,10 @@ jobs:
 
       - name: Check backend syntax
         working-directory: admin
-        run: node --check index.js
+        run: |
+          node --check app.js
+          node --check server.js
+          node --check index.js
 
       - name: Run API smoke tests
         working-directory: admin

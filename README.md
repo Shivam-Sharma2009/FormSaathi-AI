@@ -12,8 +12,7 @@ FormSaathi AI helps people understand public-service notices, scholarship circul
 formsathi_ai/
 ├── user/                   # Plain HTML, CSS, and JavaScript frontend
 ├── admin/                  # Node.js + Express API, OCR, AI integration
-├── netlify.toml            # Free static frontend deployment
-├── render.yaml             # Free backend service blueprint
+├── firebase.json           # Firebase Functions deployment configuration
 └── .github/workflows/ci.yml
 ```
 
@@ -94,48 +93,61 @@ On first image analysis, Tesseract.js may download configured OCR language data 
 - `GET /api/health` or `GET /health`: service health, AI configuration indicator, and OCR language setting.
 - `POST /api/analyze` or `POST /analyze`: multipart fields `text`, `language` (`en` or `hi`), and optional file field `image`.
 
-## Deploy free: Render backend + Netlify frontend
+## Deploy Firebase Functions + Vercel
 
-This setup keeps the static website and Node.js API separate. The free services have usage limits and are suitable for a demo rather than production-critical use. Use Google AI Studio for Gemma 4 inference; do not configure paid infrastructure if you cannot or do not want to add a payment method.
+The backend is a Firebase Cloud Function (2nd gen) named `api`, configured for
+`asia-south1`, Node.js 20, a five-minute timeout, and 1 GiB memory for OCR.
+The frontend remains plain static HTML/CSS/JavaScript and has no framework build.
+The deployed backend is intentionally demo-only until a permitted provider is
+configured through Firebase's backend environment settings.
 
-### A. Deploy the backend on Render
+### A. Deploy the Firebase Function
 
-1. Sign in to Render and choose **New → Blueprint** (or create a **Web Service** manually).
-2. Connect this GitHub repository: `Shivam-Sharma2009/formsathi_ai`.
-3. If using Blueprint, use the repository's `render.yaml`. It points to `admin/`, uses `npm install` and `npm start`, and checks `/health`.
-4. Choose the **Free** service plan and deploy.
-5. Copy the Render service URL, for example `https://your-service.onrender.com`.
+From the repository root, install the Firebase CLI if needed, authenticate, and
+select the Firebase project interactively:
 
-The Render Free service sleeps after 15 minutes without inbound traffic; the first request after sleep can take around a minute to wake it. Review Render's current free-instance limits before relying on it.
+```powershell
+npm install -g firebase-tools
+firebase login
+firebase use --add
+firebase deploy --only functions:api
+```
 
-### B. Deploy the frontend on Netlify
+The checked-in `firebase.json` points the Functions source at `admin/`. Do not
+add a project ID to that file. Firebase reads the Node.js 20 runtime from
+`admin/package.json`.
 
-1. Sign in to Netlify and choose **Add new site → Import an existing project**.
-2. Connect GitHub and choose `Shivam-Sharma2009/formsathi_ai`.
-3. Netlify reads `netlify.toml`; the published site is the static `user/` folder. There is no framework build step.
-4. Deploy the site and copy its HTTPS URL, for example `https://your-site.netlify.app`.
+After deployment, copy the HTTPS function URL. It will look similar to
+`https://asia-south1-YOUR_PROJECT.cloudfunctions.net/api`.
 
-The Netlify Free plan is $0 with a monthly credit limit. Check the current usage limits and the platform's eligibility terms for your location. Do not add a payment method or enable a paid plan just for this project.
+Set `CLIENT_ORIGIN` in the deployed function's environment to the exact HTTPS
+origin of the Vercel site, without a path or trailing slash. Localhost and
+127.0.0.1 origins remain allowed for development. Keep any provider key only
+in backend environment configuration; do not put it in this repository.
 
-### C. Connect the site to the API
+### B. Deploy the static frontend on Vercel
 
-These two values must match the actual URLs created by your accounts:
+1. Import this repository into Vercel.
+2. Set **Root Directory** to `user`.
+3. Select **Other** as the framework preset.
+4. Leave **Build Command** empty; there is no framework build.
+5. Use `.` as the output directory if Vercel asks for one, then deploy.
 
-1. Edit `user/index.html` and set this meta tag's `content` to your Render service origin, with no trailing slash:
+Before deploying or in a follow-up commit, set the existing API base meta tag in
+`user/index.html` to the Firebase Function origin:
 
-   ```html
-   <meta name="formsaathi-api-base" content="https://YOUR-SERVICE.onrender.com">
-   ```
+```html
+<meta name="formsaathi-api-base" content="https://asia-south1-YOUR_PROJECT.cloudfunctions.net/api">
+```
 
-2. In Render's service environment settings, set `CLIENT_ORIGIN` to your exact Netlify site origin, e.g. `https://YOUR-SITE.netlify.app`.
-3. Save the Render environment change and redeploy if prompted.
-4. Commit and push the `user/index.html` update. Netlify will redeploy automatically.
-5. Open the Netlify URL and verify `https://YOUR-SERVICE.onrender.com/api/health` returns JSON with `status: "ok"`.
-6. Test a non-sensitive sample notice in the website.
+The value must not include `/api`; the frontend app appends the API paths.
+After the Vercel deployment, set the Firebase `CLIENT_ORIGIN` value to the exact
+Vercel origin and verify `/api/health` returns JSON with `status: "ok"`.
 
-Keep `AI_API_KEY` only in Render's backend environment settings, mark it secret if the dashboard offers that choice, and never place it in HTML or JavaScript. Until an AI provider is configured, the site runs in clearly labelled demo mode.
-
-Both services' free tiers have limits; Render's API can be slow after idle periods. Neither a GitHub repository nor a deployment configuration by itself means the website is live.
+Do not deploy automatically from this repository. Until a permitted AI provider
+is intentionally configured, confirm the UI shows its clearly labelled Demo
+Mode results. Do not enable or copy the existing provider configuration from
+any local `.env` file.
 
 ## Tests
 
@@ -144,6 +156,8 @@ The GitHub Actions workflow checks the static frontend files and JavaScript synt
 ```powershell
 cd admin
 npm install
+node --check app.js
+node --check server.js
 node --check index.js
 npm test
 ```

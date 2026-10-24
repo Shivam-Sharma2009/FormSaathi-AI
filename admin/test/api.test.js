@@ -22,7 +22,7 @@ const wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, mill
 test('health and demo analysis endpoints respond', { timeout: 25_000 }, async (t) => {
   const port = await getFreePort();
   const baseUrl = `http://127.0.0.1:${port}`;
-  const child = spawn(process.execPath, ['index.js'], {
+  const child = spawn(process.execPath, ['server.js'], {
     cwd: adminDirectory,
     env: {
       ...process.env,
