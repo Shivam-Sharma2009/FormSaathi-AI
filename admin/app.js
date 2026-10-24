@@ -145,10 +145,56 @@ async function analyzeWithAI(text, language) {
   if (typeof content !== 'string') throw Object.assign(new Error('The AI provider returned an unexpected response.'), { status: 502 });
 
   let parsed;
+  const cleanedContent = content.trim()
+    .replace(/^\s*```(?:json)?\s*/i, '')
+    .replace(/\s*```\s*$/, '')
+    .trim();
+
   try {
-    parsed = JSON.parse(content.replace(/^\s*```(?:json)?\s*/i, '').replace(/\s*```\s*$/, ''));
+    parsed = JSON.parse(cleanedContent);
   } catch {
-    throw Object.assign(new Error('The AI provider returned invalid structured data. Please retry.'), { status: 502 });
+    // Some OpenAI-compatible model endpoints return a short preamble or
+    // fenced JSON despite response_format. Recover the first complete JSON object.
+    const start = cleanedContent.indexOf('{');
+    let end = -1;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    if (start >= 0) {
+      for (let i = start; i < cleanedContent.length; i += 1) {
+        const char = cleanedContent[i];
+        if (inString) {
+          if (escaped) escaped = false;
+          else if (char === '\\\\') escaped = true;
+          else if (char === '"') inString = false;
+          continue;
+        }
+        if (char === '"') inString = true;
+        else if (char === '{') depth += 1;
+        else if (char === '}') {
+          depth -= 1;
+          if (depth === 0) {
+            end = i + 1;
+            break;
+          }
+        }
+      }
+    }
+
+    if (start >= 0 && end > start) {
+      try {
+        parsed = JSON.parse(cleanedContent.slice(start, end));
+      } catch {
+        throw Object.assign(new Error('The AI provider returned invalid structured data. Check the selected model and retry.'), { status: 502 });
+      }
+    } else {
+      throw Object.assign(new Error('The AI provider returned invalid structured data. Check the selected model and retry.'), { status: 502 });
+    }
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw Object.assign(new Error('The AI provider returned an unexpected JSON format. Check the selected model and retry.'), { status: 502 });
   }
 
   return {
