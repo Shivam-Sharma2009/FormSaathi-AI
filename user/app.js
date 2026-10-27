@@ -389,4 +389,18 @@ try { savedTheme = localStorage.getItem(THEME_KEY) || 'dark'; } catch {}
 applyTheme(savedTheme);
 applyLanguage();
 updateFormState();
+
+const footerClock = $('footerClock');
+function updateFooterClock() {
+  if (!footerClock) return;
+  footerClock.textContent = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  }).format(new Date());
+}
+updateFooterClock();
+window.setInterval(updateFooterClock, 1000);
 window.addEventListener('beforeunload', revokePreview);
