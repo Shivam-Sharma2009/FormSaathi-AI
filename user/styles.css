@@ -70,3 +70,14 @@
 :root[data-theme="dark"] .footer-brand,:root[data-theme="dark"] footer>a:last-child{color:#9ce5c1}
 :root[data-theme="dark"] .no-evidence{color:#9aada1}
 @media(max-width:620px){.theme-toggle{width:35px;height:35px}}
+
+
+/* Footer clock and update date */
+footer{row-gap:12px}
+.footer-meta{display:flex;align-items:center;justify-content:flex-end;gap:18px;flex-basis:100%;padding-top:11px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.footer-clock{display:inline-flex;align-items:center;gap:6px}
+.footer-clock svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.footer-timezone{font-size:10px;letter-spacing:.08em;font-weight:700}
+.footer-updated{white-space:nowrap}
+:root[data-theme="dark"] .footer-meta{border-color:#35473d;color:#9aada1}
+@media(max-width:620px){.footer-meta{justify-content:space-between;gap:8px;flex-wrap:wrap}.footer-updated{white-space:normal}}
