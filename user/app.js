@@ -391,15 +391,85 @@ applyLanguage();
 updateFormState();
 
 const footerClock = $('footerClock');
+let flipClockDigits = [];
+let flipClockPeriod = null;
+let flipClockInitialized = false;
+
+function initializeFlipClock() {
+  if (!footerClock || flipClockInitialized) return;
+  footerClock.replaceChildren();
+
+  for (let groupIndex = 0; groupIndex < 3; groupIndex += 1) {
+    const group = document.createElement('span');
+    group.className = 'flip-group';
+    group.setAttribute('aria-hidden', 'true');
+
+    for (let digitIndex = 0; digitIndex < 2; digitIndex += 1) {
+      const digit = document.createElement('span');
+      digit.className = 'flip-digit';
+      digit.textContent = '0';
+      group.append(digit);
+      flipClockDigits.push(digit);
+    }
+    footerClock.append(group);
+
+    if (groupIndex < 2) {
+      const separator = document.createElement('span');
+      separator.className = 'flip-separator';
+      separator.textContent = ':';
+      separator.setAttribute('aria-hidden', 'true');
+      footerClock.append(separator);
+    }
+  }
+
+  flipClockPeriod = document.createElement('span');
+  flipClockPeriod.className = 'flip-period';
+  flipClockPeriod.setAttribute('aria-hidden', 'true');
+  footerClock.append(flipClockPeriod);
+  flipClockInitialized = true;
+}
+
+function setFlipDigit(element, nextValue, animate) {
+  if (element.textContent === nextValue) return;
+  element.textContent = nextValue;
+  if (!animate) return;
+
+  element.classList.remove('is-flipping');
+  void element.offsetWidth;
+  element.classList.add('is-flipping');
+}
+
 function updateFooterClock() {
   if (!footerClock) return;
-  footerClock.textContent = new Intl.DateTimeFormat('en-IN', {
+  initializeFlipClock();
+
+  const parts = new Intl.DateTimeFormat('en-IN', {
     timeZone: 'Asia/Kolkata',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: true
-  }).format(new Date());
+  }).formatToParts(new Date());
+  const getPart = (type) => parts.find((part) => part.type === type)?.value || '';
+  const hour = getPart('hour').padStart(2, '0');
+  const minute = getPart('minute').padStart(2, '0');
+  const second = getPart('second').padStart(2, '0');
+  const values = `${hour}${minute}${second}`;
+  const timeText = `${hour}:${minute}:${second}`;
+  const period = getPart('dayPeriod').toUpperCase();
+
+  flipClockDigits.forEach((digit, index) => {
+    setFlipDigit(digit, values[index], flipClockInitialized);
+  });
+
+  if (flipClockPeriod && flipClockPeriod.textContent !== period) {
+    flipClockPeriod.textContent = period;
+    flipClockPeriod.classList.remove('is-flipping');
+    void flipClockPeriod.offsetWidth;
+    flipClockPeriod.classList.add('is-flipping');
+  }
+
+  footerClock.setAttribute('aria-label', `Current time in India: ${timeText} ${period} IST`);
 }
 updateFooterClock();
 window.setInterval(updateFooterClock, 1000);
