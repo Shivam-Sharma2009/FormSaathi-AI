@@ -73,18 +73,6 @@ Example Markdown:
 ![FormSaathi AI analyzer](screenshots/analyzer.png)
 ```
 
-## Tech stack
-
-| Layer | Technology |
-| --- | --- |
-| Frontend | HTML, CSS, JavaScript |
-| Backend | Node.js, Express.js |
-| OCR | Tesseract.js |
-| AI integration | Configurable Gemini or OpenAI-compatible chat-completions endpoint |
-| Security and middleware | Helmet, CORS, express-rate-limit, Multer |
-| Deployment | Vercel |
-| Version control | Git and GitHub |
-
 ## Repository structure
 
 ```text
@@ -218,3 +206,19 @@ This project is distributed under the license in the [LICENSE](LICENSE) file.
 <p align="center">
   Built to make important information easier to understand. 🇮🇳
 </p>
+
+## Technologies Used
+
+| Category | Technologies |
+| --- | --- |
+| Frontend | HTML5, CSS3, Vanilla JavaScript |
+| Backend | Node.js, Express.js |
+| OCR and document processing | Tesseract.js (English and Hindi OCR), Multer (image uploads) |
+| AI integration | Google Gemini API (native `:generateContent` endpoint), OpenAI-compatible Chat Completions API |
+| Backend middleware and security | CORS, Helmet, express-rate-limit, dotenv |
+| Deployment and serverless hosting | Vercel (frontend and backend); Firebase Cloud Functions v2 adapter is also included in the repository |
+| Testing | Node.js built-in test runner |
+| Version control | Git, GitHub, GitHub Actions |
+| Fonts and interface | Google Fonts (DM Sans, Manrope), responsive CSS, light/dark themes |
+
+
