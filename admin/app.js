@@ -20,7 +20,7 @@ app.use(cors({
     if (!origin) return callback(null, true);
     const localDevelopmentOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     if (CLIENT_ORIGINS.includes(origin) || localDevelopmentOrigin) return callback(null, true);
-    return callback(new Error('Origin not allowed by CORS'));
+    return callback(Object.assign(new Error('Origin not allowed by CORS'), { status: 403 }));
   }
 }));
 app.use(express.json({ limit: '100kb' }));
@@ -31,7 +31,7 @@ const upload = multer({
   limits: { fileSize: MAX_IMAGE_BYTES, files: 1 },
   fileFilter: (_req, file, callback) => {
     const accepted = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!accepted.includes(file.mimetype)) return callback(new Error('Upload a JPG, PNG, or WEBP image.'));
+    if (!accepted.includes(file.mimetype)) return callback(Object.assign(new Error('Upload a JPG, PNG, or WEBP image.'), { status: 400 }));
     callback(null, true);
   }
 });
@@ -196,7 +196,7 @@ async function analyzeWithAI(text, language) {
         const char = cleanedContent[i];
         if (inString) {
           if (escaped) escaped = false;
-          else if (char === '\\\\') escaped = true;
+          else if (char === '\\') escaped = true;
           else if (char === '"') inString = false;
           continue;
         }
