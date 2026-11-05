@@ -23,7 +23,7 @@ const TRANSLATIONS = {
     trustTitle:'Helpful, not authoritative.',trustText:'FormSaathi AI is independent and is not affiliated with any government body. If AI is configured, extracted notice text is sent to your selected model provider.',
     noStorage:'No permanent upload storage by default',serverKeys:'Server-side AI credentials',
     footerNote:'Independent information tool · Not an official government website',fileError:'Choose a JPG, PNG or WEBP image up to 5 MB.',
-    emptyError:'Paste some notice text or choose an image first.',genericError:'Could not analyze the notice. Please try again.',
+    emptyError:'Paste some notice text or choose an image first.',genericError:'Could not analyze the notice. Please try again.',timeoutError:'The request took too long. Please try again.',
     removeImageAlt:'Selected notice preview',imageReady:'Image ready for analysis',demoCaveat:'No AI model was used in demo mode. Verify the official notice before making important decisions.',
     notStated:'Not stated clearly in the provided notice.',extractedText:'Text extracted from image',analyzeAnother:'Analyze another notice',
     noResult:'No items identified in this category. Check the source notice for details.',uploadBad:'This page is opened as a local file. Start a local web server to use the analyzer.',
@@ -46,7 +46,7 @@ const TRANSLATIONS = {
     trustTitle:'मददगार जानकारी, आधिकारिक निर्णय नहीं।',trustText:'FormSaathi AI स्वतंत्र टूल है और किसी सरकारी संस्था से जुड़ा नहीं है। AI सेट होने पर नोटिस का निकाला गया टेक्स्ट चुने गए model provider को भेजा जाता है।',
     noStorage:'अपलोड स्थायी रूप से सेव नहीं होता',serverKeys:'AI कुंजी केवल सर्वर पर',
     footerNote:'स्वतंत्र जानकारी टूल · आधिकारिक सरकारी वेबसाइट नहीं',fileError:'5 MB तक की JPG, PNG या WEBP तस्वीर चुनें।',
-    emptyError:'पहले नोटिस का टेक्स्ट पेस्ट करें या तस्वीर चुनें।',genericError:'नोटिस का विश्लेषण नहीं हो पाया। फिर से कोशिश करें।',
+    emptyError:'पहले नोटिस का टेक्स्ट पेस्ट करें या तस्वीर चुनें।',genericError:'नोटिस का विश्लेषण नहीं हो पाया। फिर से कोशिश करें।',timeoutError:'अनुरोध पूरा होने में बहुत समय लगा। फिर से कोशिश करें।',
     removeImageAlt:'चुनी गई नोटिस की तस्वीर',imageReady:'तस्वीर विश्लेषण के लिए तैयार है',demoCaveat:'डेमो मोड में AI model का उपयोग नहीं हुआ। ज़रूरी निर्णय से पहले आधिकारिक नोटिस जाँचें।',
     notStated:'दिए गए नोटिस में यह जानकारी साफ़ तौर पर नहीं मिली।',extractedText:'तस्वीर से निकला टेक्स्ट',analyzeAnother:'दूसरा नोटिस समझें',
     noResult:'इस श्रेणी में जानकारी नहीं मिली। मूल नोटिस को ध्यान से जाँचें।',uploadBad:'यह पेज लोकल फ़ाइल के रूप में खुला है। Analyzer चलाने के लिए लोकल वेब सर्वर शुरू करें।',
@@ -335,7 +335,11 @@ $('sampleButton').addEventListener('click', () => {
 $('clearButton').addEventListener('click', clearForm);
 $('removeImage').addEventListener('click', removeImage);
 uploadZone.addEventListener('click', () => imageInput.click());
-imageInput.addEventListener('change', () => chooseImage(imageInput.files?.[0]));
+imageInput.addEventListener('change', () => {
+  const file = imageInput.files?.[0];
+  chooseImage(file);
+  imageInput.value = '';
+});
 uploadZone.addEventListener('dragover', (event) => {
   event.preventDefault();
   uploadZone.classList.add('dragover');
@@ -349,6 +353,7 @@ uploadZone.addEventListener('drop', (event) => {
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
+  if (busy) return;
   if (!noticeText.value.trim() && !selectedImage) {
     setError(t('emptyError'));
     return;
@@ -368,18 +373,23 @@ form.addEventListener('submit', async (event) => {
   body.append('language', language);
   if (selectedImage) body.append('image', selectedImage);
 
+  const controller = new AbortController();
+  const requestTimeout = window.setTimeout(() => controller.abort(), 55_000);
+
   try {
-    const response = await fetch(`${getApiBase()}/api/analyze`, { method: 'POST', body });
+    const response = await fetch(`${getApiBase()}/api/analyze`, { method: 'POST', body, signal: controller.signal });
     let payload;
     try { payload = await response.json(); }
     catch { throw new Error(t('genericError')); }
     if (!response.ok) throw new Error(payload.error || t('genericError'));
     currentResult = payload;
     renderResults(payload);
-    resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    window.requestAnimationFrame(() => resultPanel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }));
   } catch (error) {
-    setError(error.message || t('genericError'));
+    setError(error.name === 'AbortError' ? t('timeoutError') : (error.message || t('genericError')));
   } finally {
+    window.clearTimeout(requestTimeout);
     setLoading(false);
   }
 });
