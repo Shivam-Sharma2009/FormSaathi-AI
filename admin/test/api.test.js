@@ -59,6 +59,12 @@ test('health and demo analysis endpoints respond', { timeout: 25_000 }, async (t
   assert.equal(health.status, 'ok');
   assert.equal(health.aiConfigured, false);
 
+  const deniedOriginResponse = await fetch(`${baseUrl}/api/health`, {
+    headers: { Origin: 'https://not-allowed.example' }
+  });
+  assert.equal(deniedOriginResponse.status, 403);
+  assert.match((await deniedOriginResponse.json()).error, /Origin not allowed/i);
+
   const form = new FormData();
   form.append('language', 'en');
   form.append('text', [
@@ -81,4 +87,22 @@ test('health and demo analysis endpoints respond', { timeout: 25_000 }, async (t
   emptyForm.append('text', '');
   const emptyResponse = await fetch(`${baseUrl}/api/analyze`, { method: 'POST', body: emptyForm });
   assert.equal(emptyResponse.status, 400);
+
+  const invalidImageForm = new FormData();
+  invalidImageForm.append('image', new Blob(['not an image'], { type: 'image/gif' }), 'notice.gif');
+  const invalidImageResponse = await fetch(`${baseUrl}/api/analyze`, {
+    method: 'POST',
+    body: invalidImageForm
+  });
+  assert.equal(invalidImageResponse.status, 400);
+  assert.match((await invalidImageResponse.json()).error, /JPG, PNG, or WEBP/i);
+
+  const oversizedTextForm = new FormData();
+  oversizedTextForm.append('language', 'en');
+  oversizedTextForm.append('text', 'x'.repeat(30_001));
+  const oversizedTextResponse = await fetch(`${baseUrl}/api/analyze`, {
+    method: 'POST',
+    body: oversizedTextForm
+  });
+  assert.equal(oversizedTextResponse.status, 413);
 });
