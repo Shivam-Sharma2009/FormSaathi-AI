@@ -8,7 +8,7 @@ Students should verify the final eligibility conditions and submission status on
 
 const TRANSLATIONS = {
   en: {
-    howLink:'How it works',trustLink:'Privacy & trust',eyebrow:'Clarity for every important notice',titleOne:'Big paperwork.',titleTwo:'Clear next steps.',
+    howLink:'How it works',trustLink:'Privacy & trust',eyebrow:'Clarity for every important notice',titleOne:'Big paperwork.',titleTwo:'Clear next steps.',loadingResults:'Analyzing your notice. Your summary and action checklist will appear here.',
     intro:'Turn confusing public-service notices into plain-language explanations, important dates, and a checklist you can actually use.',
     evidenceAware:'Evidence-aware answers',privateByDesign:'Private by design',deadlineIdentified:'Deadline identified',documentsListed:'Documents listed',aiAssisted:'AI assisted',sourceLinked:'Source linked',
     analyzerEyebrow:'NOTICE ANALYZER',analyzerTitle:'Your notice, made clearer',analyzerIntro:'Paste the notice text or add a readable photo. We’ll organize it into a practical action brief.',
@@ -31,7 +31,7 @@ const TRANSLATIONS = {
     aiMode:'AI analysis',actionCount:'items',deadlineContext:'Date found in the source text; check the original notice to understand what it refers to.'
   },
   hi: {
-    howLink:'कैसे काम करता है',trustLink:'गोपनीयता और भरोसा',eyebrow:'हर ज़रूरी नोटिस को आसान भाषा में समझें',titleOne:'नोटिस की उलझन।',titleTwo:'अगले कदम साफ़।',
+    howLink:'कैसे काम करता है',trustLink:'गोपनीयता और भरोसा',eyebrow:'हर ज़रूरी नोटिस को आसान भाषा में समझें',titleOne:'नोटिस की उलझन।',titleTwo:'अगले कदम साफ़।',loadingResults:'आपका नोटिस समझा जा रहा है। सारांश और अगले कदम यहाँ दिखाई देंगे।',
     intro:'जटिल सरकारी नोटिस को सरल जानकारी, ज़रूरी तारीखों और काम की चेकलिस्ट में बदलें।',
     evidenceAware:'स्रोत पर आधारित जवाब',privateByDesign:'गोपनीयता का ध्यान',deadlineIdentified:'अंतिम तिथि मिली',documentsListed:'दस्तावेज़ मिले',aiAssisted:'AI की मदद',sourceLinked:'स्रोत जुड़ा है',
     analyzerEyebrow:'नोटिस विश्लेषक',analyzerTitle:'नोटिस अब समझना आसान',analyzerIntro:'नोटिस का टेक्स्ट पेस्ट करें या साफ़ तस्वीर जोड़ें। ज़रूरी जानकारी को चेकलिस्ट में व्यवस्थित किया जाएगा।',
@@ -208,9 +208,60 @@ function paragraph(parent, text) {
   parent.append(makeElement('p', '', text || t('notStated')));
 }
 
+function renderLoadingSkeleton() {
+  resultPanel.replaceChildren();
+  resultPanel.hidden = false;
+  resultPanel.setAttribute('aria-busy', 'true');
+
+  const announcement = makeElement('p', 'sr-only', t('loadingResults'));
+  resultPanel.append(announcement);
+
+  const skeleton = makeElement('div', 'loading-skeleton');
+  skeleton.setAttribute('aria-hidden', 'true');
+
+  const heading = makeElement('div', 'skeleton-heading');
+  const headingText = makeElement('div', 'skeleton-heading-copy');
+  headingText.append(makeElement('span', 'skeleton-shape skeleton-eyebrow'));
+  headingText.append(makeElement('span', 'skeleton-shape skeleton-title'));
+  heading.append(headingText, makeElement('span', 'skeleton-shape skeleton-pill'));
+  skeleton.append(heading);
+
+  const summary = makeElement('div', 'skeleton-summary');
+  summary.append(makeElement('span', 'skeleton-shape skeleton-icon'));
+  const summaryLines = makeElement('div', 'skeleton-lines');
+  summaryLines.append(makeElement('span', 'skeleton-shape skeleton-line line-long'));
+  summaryLines.append(makeElement('span', 'skeleton-shape skeleton-line line-medium'));
+  summaryLines.append(makeElement('span', 'skeleton-shape skeleton-line line-short'));
+  summary.append(summaryLines);
+  skeleton.append(summary);
+
+  const grid = makeElement('div', 'skeleton-grid');
+  for (let cardIndex = 0; cardIndex < 4; cardIndex += 1) {
+    const card = makeElement('div', 'skeleton-card');
+    card.append(makeElement('span', 'skeleton-shape skeleton-card-title'));
+    card.append(makeElement('span', 'skeleton-shape skeleton-line line-long'));
+    card.append(makeElement('span', 'skeleton-shape skeleton-line line-medium'));
+    card.append(makeElement('span', 'skeleton-shape skeleton-line line-short'));
+    grid.append(card);
+  }
+  skeleton.append(grid);
+
+  const checklist = makeElement('div', 'skeleton-checklist');
+  checklist.append(makeElement('span', 'skeleton-shape skeleton-card-title'));
+  for (let itemIndex = 0; itemIndex < 3; itemIndex += 1) {
+    const row = makeElement('div', 'skeleton-check-row');
+    row.append(makeElement('span', 'skeleton-shape skeleton-check'));
+    row.append(makeElement('span', 'skeleton-shape skeleton-line line-long'));
+    checklist.append(row);
+  }
+  skeleton.append(checklist);
+  resultPanel.append(skeleton);
+}
+
 function renderResults(result) {
   resultPanel.replaceChildren();
   resultPanel.hidden = false;
+  resultPanel.setAttribute('aria-busy', 'false');
 
   const top = makeElement('div', 'results-heading');
   const topLeft = document.createElement('div');
@@ -365,9 +416,10 @@ form.addEventListener('submit', async (event) => {
 
   setError('');
   currentResult = null;
-  resultPanel.replaceChildren();
-  resultPanel.hidden = true;
   setLoading(true);
+  renderLoadingSkeleton();
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  window.requestAnimationFrame(() => resultPanel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }));
   const body = new FormData();
   body.append('text', noticeText.value);
   body.append('language', language);
@@ -384,9 +436,10 @@ form.addEventListener('submit', async (event) => {
     if (!response.ok) throw new Error(payload.error || t('genericError'));
     currentResult = payload;
     renderResults(payload);
-    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    window.requestAnimationFrame(() => resultPanel.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }));
   } catch (error) {
+    resultPanel.replaceChildren();
+    resultPanel.hidden = true;
+    resultPanel.setAttribute('aria-busy', 'false');
     setError(error.name === 'AbortError' ? t('timeoutError') : (error.message || t('genericError')));
   } finally {
     window.clearTimeout(requestTimeout);
