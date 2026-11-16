@@ -291,6 +291,8 @@ Distributed under the [MIT License](LICENSE).
 
 **Built to make important information easier to understand. 🇮🇳**
 
+Made with ❤️ by **[Shivam Sharma](https://github.com/Shivam-Sharma2009)**
+
 [Live application](https://formsaathi-ai-user.vercel.app/) · [Report an issue](https://github.com/Shivam-Sharma2009/FormSaathi-AI/issues) · [View source](https://github.com/Shivam-Sharma2009/FormSaathi-AI)
 
 </div>
