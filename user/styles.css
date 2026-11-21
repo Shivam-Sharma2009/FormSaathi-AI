@@ -127,3 +127,13 @@ footer{row-gap:12px}
 @keyframes skeleton-shimmer{100%{transform:translateX(100%)}}
 @media(max-width:620px){.skeleton-grid{grid-template-columns:1fr;gap:12px}.skeleton-heading{align-items:flex-start}.skeleton-pill{width:76px;height:27px}.skeleton-title{height:22px;width:88%}.skeleton-summary{padding:13px;gap:10px}}
 @media(prefers-reduced-motion:reduce){.skeleton-shape:after{animation:none;transform:none;background:transparent}}
+
+
+/* PDF file preview */
+.image-preview.pdf-preview::before{content:"PDF";display:grid;place-items:center;flex:0 0 55px;height:55px;border:1px solid #e5c9c7;border-radius:6px;background:#fff1ef;color:#a43f39;font-size:13px;font-weight:800;letter-spacing:.04em}
+:root[data-theme="dark"] .image-preview.pdf-preview::before{background:#3a2725;border-color:#68413d;color:#ffb5ad}
+
+/* PDF processing details */
+.document-info{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:11px 13px;margin:0 0 18px;border:1px solid var(--line);border-radius:9px;background:var(--mint);color:var(--ink);font-size:12px}
+.document-info strong{overflow-wrap:anywhere}
+.document-info span{color:var(--muted);font-variant-numeric:tabular-nums}
