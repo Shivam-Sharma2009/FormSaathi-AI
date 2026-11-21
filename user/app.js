@@ -13,7 +13,7 @@ const TRANSLATIONS = {
     evidenceAware:'Evidence-aware answers',privateByDesign:'Private by design',deadlineIdentified:'Deadline identified',documentsListed:'Documents listed',aiAssisted:'AI assisted',sourceLinked:'Source linked',
     analyzerEyebrow:'NOTICE ANALYZER',analyzerTitle:'Your notice, made clearer',analyzerIntro:'Paste the notice text or add a readable photo. We’ll organize it into a practical action brief.',
     sourceFirst:'Source first',pasteLabel:'Paste notice text',sampleButton:'Try sample',noticePlaceholder:'Paste a government notice, scholarship instructions, admission circular, or public-service document…',
-    clearButton:'Clear',or:'OR',uploadTitle:'Upload or paste a notice image',uploadHint:'JPG, PNG or WEBP · up to 5 MB · Ctrl+V also works',removeImage:'Remove',explainIn:'Explain in',
+    clearButton:'Clear',or:'OR',uploadTitle:'Upload or paste a notice image or PDF',uploadHint:'JPG, PNG or WEBP up to 5 MB · PDF up to 10 MB / 10 pages · Ctrl+V works for images',removeImage:'Remove',explainIn:'Explain in',
     analyzeButton:'Understand this notice',analyzing:'Reading your notice…',howTitle:'How it works',stepOneTitle:'Add a notice',stepOneText:'Paste instructions or add a readable notice image.',
     stepTwoTitle:'Find key details',stepTwoText:'Organize dates, document mentions, and eligibility clues.',stepThreeTitle:'Verify the source',stepThreeText:'Review quoted evidence and compare it with the original.',
     disclaimer:'Helpful, not authoritative. Confirm deadlines, fees, eligibility, and document requirements against the official notice.',
@@ -22,10 +22,10 @@ const TRANSLATIONS = {
     demo:'DEMO MODE',ai:'AI ANALYSIS',demoExplain:'This is rule-based demo output, not AI-generated analysis. The configured AI provider is unavailable or out of quota right now. Verify the notice against its official source.',
     trustTitle:'Helpful, not authoritative.',trustText:'FormSaathi AI is independent and is not affiliated with any government body. If AI is configured, extracted notice text is sent to your selected model provider.',
     noStorage:'No permanent upload storage by default',serverKeys:'Server-side AI credentials',
-    footerNote:'Independent information tool · Not an official government website',fileError:'Choose a JPG, PNG or WEBP image up to 5 MB.',
+    footerNote:'Independent information tool · Not an official government website',fileError:'Choose a JPG, PNG or WEBP image up to 5 MB, or a PDF up to 10 MB and 10 pages.',
     emptyError:'Paste some notice text or choose an image first.',genericError:'Could not analyze the notice. Please try again.',timeoutError:'The request took too long. Please try again.',
     removeImageAlt:'Selected notice preview',imageReady:'Image ready for analysis',demoCaveat:'No AI model was used in demo mode. Verify the official notice before making important decisions.',
-    notStated:'Not stated clearly in the provided notice.',extractedText:'Text extracted from image',analyzeAnother:'Analyze another notice',
+    notStated:'Not stated clearly in the provided notice.',extractedText:'Extracted document text',analyzeAnother:'Analyze another notice',pdfPages:'pages',pdfOcrPages:'OCR pages',pdfTextPages:'digital-text pages',pdfPageLimit:'PDF · up to 10 pages',
     noResult:'No items identified in this category. Check the source notice for details.',uploadBad:'This page is opened as a local file. Start a local web server to use the analyzer.',
     clipboardImage:'Image pasted from clipboard.',charLimit:'Notice text is too long. Keep it below 30,000 characters.',
     aiMode:'AI analysis',actionCount:'items',deadlineContext:'Date found in the source text; check the original notice to understand what it refers to.'
@@ -36,7 +36,7 @@ const TRANSLATIONS = {
     evidenceAware:'स्रोत पर आधारित जवाब',privateByDesign:'गोपनीयता का ध्यान',deadlineIdentified:'अंतिम तिथि मिली',documentsListed:'दस्तावेज़ मिले',aiAssisted:'AI की मदद',sourceLinked:'स्रोत जुड़ा है',
     analyzerEyebrow:'नोटिस विश्लेषक',analyzerTitle:'नोटिस अब समझना आसान',analyzerIntro:'नोटिस का टेक्स्ट पेस्ट करें या साफ़ तस्वीर जोड़ें। ज़रूरी जानकारी को चेकलिस्ट में व्यवस्थित किया जाएगा।',
     sourceFirst:'पहले स्रोत',pasteLabel:'नोटिस का टेक्स्ट पेस्ट करें',sampleButton:'उदाहरण देखें',noticePlaceholder:'सरकारी नोटिस, स्कॉलरशिप निर्देश, एडमिशन सर्कुलर या दस्तावेज़ यहाँ पेस्ट करें…',
-    clearButton:'साफ़ करें',or:'या',uploadTitle:'नोटिस की तस्वीर अपलोड या पेस्ट करें',uploadHint:'JPG, PNG या WEBP · अधिकतम 5 MB · Ctrl+V भी इस्तेमाल करें',removeImage:'हटाएँ',explainIn:'भाषा',
+    clearButton:'साफ़ करें',or:'या',uploadTitle:'नोटिस की तस्वीर या PDF अपलोड करें',uploadHint:'JPG, PNG या WEBP अधिकतम 5 MB · PDF अधिकतम 10 MB / 10 पेज · तस्वीर पेस्ट भी कर सकते हैं',removeImage:'हटाएँ',explainIn:'भाषा',
     analyzeButton:'नोटिस समझें',analyzing:'नोटिस पढ़ रहे हैं…',howTitle:'कैसे काम करता है',stepOneTitle:'नोटिस जोड़ें',stepOneText:'निर्देश पेस्ट करें या साफ़ तस्वीर जोड़ें।',
     stepTwoTitle:'ज़रूरी जानकारी निकालें',stepTwoText:'तारीखें, दस्तावेज़ और पात्रता से जुड़े संकेत व्यवस्थित करें।',stepThreeTitle:'मूल स्रोत जाँचें',stepThreeText:'दिए गए प्रमाण को मूल नोटिस से मिलाएँ।',
     disclaimer:'यह मददगार जानकारी है, आधिकारिक निर्णय नहीं। अंतिम तिथि, शुल्क, पात्रता और दस्तावेज़ मूल नोटिस से जाँचें।',
@@ -45,10 +45,10 @@ const TRANSLATIONS = {
     demo:'डेमो मोड',ai:'AI विश्लेषण',demoExplain:'यह नियमों पर आधारित डेमो है, AI से बना विश्लेषण नहीं। अभी AI सेवा उपलब्ध नहीं है या उसकी quota सीमा आ गई है। मूल सरकारी स्रोत से जानकारी की पुष्टि करें।',
     trustTitle:'मददगार जानकारी, आधिकारिक निर्णय नहीं।',trustText:'FormSaathi AI स्वतंत्र टूल है और किसी सरकारी संस्था से जुड़ा नहीं है। AI सेट होने पर नोटिस का निकाला गया टेक्स्ट चुने गए model provider को भेजा जाता है।',
     noStorage:'अपलोड स्थायी रूप से सेव नहीं होता',serverKeys:'AI कुंजी केवल सर्वर पर',
-    footerNote:'स्वतंत्र जानकारी टूल · आधिकारिक सरकारी वेबसाइट नहीं',fileError:'5 MB तक की JPG, PNG या WEBP तस्वीर चुनें।',
+    footerNote:'स्वतंत्र जानकारी टूल · आधिकारिक सरकारी वेबसाइट नहीं',fileError:'5 MB तक की JPG, PNG या WEBP तस्वीर या 10 MB और 10 पेज तक की PDF चुनें।',
     emptyError:'पहले नोटिस का टेक्स्ट पेस्ट करें या तस्वीर चुनें।',genericError:'नोटिस का विश्लेषण नहीं हो पाया। फिर से कोशिश करें।',timeoutError:'अनुरोध पूरा होने में बहुत समय लगा। फिर से कोशिश करें।',
     removeImageAlt:'चुनी गई नोटिस की तस्वीर',imageReady:'तस्वीर विश्लेषण के लिए तैयार है',demoCaveat:'डेमो मोड में AI model का उपयोग नहीं हुआ। ज़रूरी निर्णय से पहले आधिकारिक नोटिस जाँचें।',
-    notStated:'दिए गए नोटिस में यह जानकारी साफ़ तौर पर नहीं मिली।',extractedText:'तस्वीर से निकला टेक्स्ट',analyzeAnother:'दूसरा नोटिस समझें',
+    notStated:'दिए गए नोटिस में यह जानकारी साफ़ तौर पर नहीं मिली।',extractedText:'दस्तावेज़ से निकला टेक्स्ट',analyzeAnother:'दूसरा नोटिस समझें',pdfPages:'पेज',pdfOcrPages:'OCR किए गए पेज',pdfTextPages:'डिजिटल टेक्स्ट वाले पेज',pdfPageLimit:'PDF · अधिकतम 10 पेज',
     noResult:'इस श्रेणी में जानकारी नहीं मिली। मूल नोटिस को ध्यान से जाँचें।',uploadBad:'यह पेज लोकल फ़ाइल के रूप में खुला है। Analyzer चलाने के लिए लोकल वेब सर्वर शुरू करें।',
     clipboardImage:'क्लिपबोर्ड से तस्वीर जोड़ी गई।',charLimit:'नोटिस का टेक्स्ट बहुत लंबा है। इसे 30,000 अक्षरों से कम रखें।',
     aiMode:'AI विश्लेषण',actionCount:'आइटम',deadlineContext:'टेक्स्ट में तारीख मिली है; इसका मतलब जानने के लिए मूल नोटिस जाँचें।'
@@ -136,20 +136,35 @@ function revokePreview() {
   previewUrl = '';
 }
 
-function chooseImage(file) {
+function chooseFile(file) {
   if (!file) return;
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+  const isPdf = file.type === 'application/pdf' || /\\.pdf$/i.test(file.name || '');
+  const acceptedImages = ['image/jpeg', 'image/png', 'image/webp'];
+  const isImage = acceptedImages.includes(file.type);
+  const maxBytes = isPdf ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+  if ((!isPdf && !isImage) || file.size > maxBytes) {
     setError(t('fileError'));
     return;
+  }
+  if (isPdf && file.type !== 'application/pdf') {
+    file = new File([file], file.name || 'notice.pdf', { type: 'application/pdf' });
   }
   setError('');
   revokePreview();
   selectedImage = file;
-  previewUrl = URL.createObjectURL(file);
-  previewImage.src = previewUrl;
-  previewImage.alt = t('removeImageAlt');
+  imagePreview.classList.toggle('pdf-preview', isPdf);
+  previewImage.hidden = isPdf;
+  previewImage.removeAttribute('src');
+  if (!isPdf) {
+    previewUrl = URL.createObjectURL(file);
+    previewImage.src = previewUrl;
+    previewImage.alt = t('removeImageAlt');
+  }
   fileName.textContent = file.name || t('imageReady');
-  fileSize.textContent = `${Math.max(1, Math.round(file.size / 1024))} KB`;
+  const sizeLabel = file.size >= 1024 * 1024
+    ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(file.size / 1024))} KB`;
+  fileSize.textContent = isPdf ? `${sizeLabel} · ${t('pdfPageLimit')}` : sizeLabel;
   imagePreview.hidden = false;
   uploadZone.hidden = true;
   updateFormState();
@@ -159,6 +174,8 @@ function removeImage() {
   selectedImage = null;
   revokePreview();
   previewImage.removeAttribute('src');
+  previewImage.hidden = false;
+  imagePreview.classList.remove('pdf-preview');
   imagePreview.hidden = true;
   uploadZone.hidden = false;
   imageInput.value = '';
@@ -318,6 +335,14 @@ function renderResults(result) {
     resultPanel.append(caveats);
   }
 
+  if (result.documentInfo?.type === 'pdf') {
+    const info = makeElement('div', 'document-info');
+    info.append(makeElement('strong', '', result.documentInfo.fileName || 'PDF document'));
+    const ocrCount = Array.isArray(result.documentInfo.ocrPages) ? result.documentInfo.ocrPages.length : 0;
+    const textCount = Array.isArray(result.documentInfo.textPages) ? result.documentInfo.textPages.length : 0;
+    info.append(makeElement('span', '', `${result.documentInfo.pageCount} ${t('pdfPages')} · ${ocrCount} ${t('pdfOcrPages')} · ${textCount} ${t('pdfTextPages')}`));
+    resultPanel.append(info);
+  }
   if (result.extractedText) {
     const details = makeElement('details', 'ocr-details');
     details.append(makeElement('summary', '', `▤  ${t('extractedText')}`), makeElement('pre', '', result.extractedText));
@@ -374,7 +399,7 @@ noticeText.addEventListener('paste', (event) => {
   }
   const type = blob.type;
   const extension = type === 'image/jpeg' ? 'jpg' : type === 'image/webp' ? 'webp' : 'png';
-  chooseImage(new File([blob], `pasted-notice-${Date.now()}.${extension}`, { type }));
+  chooseFile(new File([blob], `pasted-notice-${Date.now()}.${extension}`, { type }));
 });
 
 $('sampleButton').addEventListener('click', () => {
@@ -388,7 +413,7 @@ $('removeImage').addEventListener('click', removeImage);
 uploadZone.addEventListener('click', () => imageInput.click());
 imageInput.addEventListener('change', () => {
   const file = imageInput.files?.[0];
-  chooseImage(file);
+  chooseFile(file);
   imageInput.value = '';
 });
 uploadZone.addEventListener('dragover', (event) => {
@@ -399,7 +424,7 @@ uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag
 uploadZone.addEventListener('drop', (event) => {
   event.preventDefault();
   uploadZone.classList.remove('dragover');
-  chooseImage(event.dataTransfer?.files?.[0]);
+  chooseFile(event.dataTransfer?.files?.[0]);
 });
 
 form.addEventListener('submit', async (event) => {
