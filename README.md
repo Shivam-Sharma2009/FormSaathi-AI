@@ -39,7 +39,7 @@ FormSaathi AI supports **English and Hindi** and provides a clearly labelled **D
 - **Plain-language summaries:** Makes long or complicated notices easier to understand.
 - **Key information extraction:** Organizes key points, dates, document mentions, and eligibility clues.
 - **English and Hindi output:** Select the language for the analysis.
-- **Image-to-text OCR:** Reads JPG, PNG, and WEBP images using Tesseract.js, with English and Hindi language support.\n- **Multi-page PDF support:** Processes PDFs up to 10 MB and 10 pages, extracting embedded text or OCRing scanned pages.\n- **Page-aware extraction:** Labels extracted text by page and reports which pages used OCR versus embedded text.
+- **Image-to-text OCR:** Reads JPG, PNG, and WEBP images using Tesseract.js, with English and Hindi language support.\n- **Multi-page PDF processing:** Accepts PDFs up to 10 MB and 10 pages, extracts embedded text from digital pages, and renders scan-like pages for OCR. PDF page results are labelled, and the UI reports how many pages used OCR versus embedded text.\n- **Multi-page PDF support:** Processes PDFs up to 10 MB and 10 pages, extracting embedded text or OCRing scanned pages.\n- **Page-aware extraction:** Labels extracted text by page and reports which pages used OCR versus embedded text.
 - **Evidence-aware results:** Shows supporting excerpts and validates model-provided evidence against the submitted notice text.
 - **Action checklist:** Presents practical next steps based on the information found in the notice.
 - **Demo Mode:** Uses rule-based extraction when AI is not configured or unavailable. Demo output is identified as non-AI output.
@@ -103,7 +103,7 @@ FormSaathi-AI/
 │   │   └── index.js          # Vercel serverless API entry point
 │   ├── test/
 │   │   └── api.test.js       # API smoke and regression tests
-│   ├── app.js                # Express routes, OCR and analysis\n│   ├── pdf-processing.js     # PDF text extraction and scanned-page OCR
+│   ├── app.js                # Express routes, OCR and analysis\n│   ├── pdf-processing.js      # Page-wise PDF text extraction and OCR fallback\n│   ├── pdf-processing.js     # PDF text extraction and scanned-page OCR
 │   ├── index.js              # Firebase Functions v2 adapter
 │   ├── server.js             # Local development server
 │   ├── package.json
@@ -230,7 +230,7 @@ Accepts \`multipart/form-data\`.
 | \`language\` | String | \`en\` or \`hi\`. Defaults to English. |
 | \`image\` | File | JPG, PNG, WEBP image (5 MB) or PDF (10 MB, up to 10 pages). |
 
-The response contains a structured analysis, including the mode, notice title, summary, key points, deadlines, required documents, eligibility clues, action checklist, caveats, and OCR text when an image was supplied.
+The response contains a structured analysis, including the mode, notice title, summary, key points, deadlines, required documents, eligibility clues, action checklist, caveats, extracted text, and optional \`documentInfo\` metadata. For PDFs, metadata includes page count and the page numbers processed using embedded text or OCR.
 
 ### Main response fields
 
@@ -245,7 +245,7 @@ The response contains a structured analysis, including the mode, notice title, s
 | \`eligibility\` | Eligibility-related conditions found in the source. |
 | \`actionChecklist\` | Suggested next steps. |
 | \`caveats\` | Limitations and details that need verification. |
-| \`extractedText\` | OCR text, or \`null\` when no image was processed. |
+| \`extractedText\` | Extracted image or PDF text, or \`null\` when no file was processed. PDF text includes page markers. |
 
 ## Tests and continuous integration
 
