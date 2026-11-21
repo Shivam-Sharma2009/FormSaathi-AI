@@ -16,7 +16,30 @@ function createTestPdf(pageTexts) {
   pageTexts.forEach((text, index) => {
     const pageId = pageIds[index];
     const contentId = pageId + 1;
-    const escaped = String(text).replace(/[\\\\()]/g, '\\\\const adminDirectory = fileURLToPath(new URL('..', import.meta.url));');
+    const escaped = String(text).replace(/[\\\\()]/g, (char) => char === '\\\\' ? '\\\\\\\\' : `\\\\${char}`);
+    const stream = text ? `BT /F1 14 Tf 72 720 Td (${escaped}) Tj ET` : '';
+    objects.set(pageId, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >>`);
+    objects.set(contentId, `<< /Length ${Buffer.byteLength(stream, 'latin1')} >>\\nstream\\n${stream}\\nendstream`);
+  });
+
+  const maxObject = Math.max(...objects.keys());
+  let pdf = '%PDF-1.4\\n';
+  const offsets = new Array(maxObject + 1).fill(0);
+  for (let objectId = 1; objectId <= maxObject; objectId += 1) {
+    offsets[objectId] = Buffer.byteLength(pdf, 'latin1');
+    pdf += `${objectId} 0 obj\\n${objects.get(objectId)}\\nendobj\\n`;
+  }
+
+  const xrefOffset = Buffer.byteLength(pdf, 'latin1');
+  pdf += `xref\\n0 ${maxObject + 1}\\n0000000000 65535 f \\n`;
+  for (let objectId = 1; objectId <= maxObject; objectId += 1) {
+    pdf += `${String(offsets[objectId]).padStart(10, '0')} 00000 n \\n`;
+  }
+  pdf += `trailer\\n<< /Size ${maxObject + 1} /Root 1 0 R >>\\nstartxref\\n${xrefOffset}\\n%%EOF`;
+  return Buffer.from(pdf, 'latin1');
+}
+
+const adminDirectory = fileURLToPath(new URL('..', import.meta.url));');
     const stream = text
       ? `BT /F1 14 Tf 72 720 Td (${escaped}) Tj ET`
       : '';
@@ -165,6 +188,21 @@ test('health and demo analysis endpoints respond', { timeout: 25_000 }, async (t
     body: oversizedTextForm
   });
   assert.equal(oversizedTextResponse.status, 413);
+});
+
+test('PDF processor OCRs pages with insufficient embedded text', async () => {
+  const calls = [];
+  const result = await processPdf(createTestPdf(['short']), {
+    ocrLanguages: 'eng',
+    ocrPage: async (_imageBuffer, pageNumber) => {
+      calls.push(pageNumber);
+      return 'Recognized text replaces a short embedded text page';
+    }
+  });
+  assert.deepEqual(calls, [1]);
+  assert.deepEqual(result.ocrPages, [1]);
+  assert.deepEqual(result.textPages, []);
+  assert.match(result.text, /Recognized text replaces/);
 });
 
 test('PDF processor OCRs every scanned page in a multi-page document', async () => {
