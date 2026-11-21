@@ -4,12 +4,16 @@ import helmet from 'helmet';
 import multer from 'multer';
 import rateLimit from 'express-rate-limit';
 import { createWorker } from 'tesseract.js';
+import { basename } from 'node:path';
+import { processPdf } from './pdf-processing.js';
 
 const app = express();
 const CLIENT_ORIGINS = [...new Set([...(process.env.CLIENT_ORIGIN || '').split(',').map((origin) => origin.trim()).filter(Boolean), 'https://formsaathi-ai-user.vercel.app', 'http://localhost:5173'])];
 const OCR_LANGS = process.env.OCR_LANGS?.trim() || 'eng+hin';
 const MAX_TEXT_CHARS = 30000;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_PDF_BYTES = 10 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = MAX_PDF_BYTES;
 
 app.disable('x-powered-by');
 // Vercel runs the function behind a trusted proxy; this is needed for rate-limit IP detection.
@@ -28,10 +32,15 @@ app.use('/api/', rateLimit({ windowMs: 60_000, limit: 20, standardHeaders: 'draf
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_IMAGE_BYTES, files: 1 },
+  limits: { fileSize: MAX_UPLOAD_BYTES, files: 1, fields: 2, parts: 3, fieldSize: MAX_TEXT_CHARS },
   fileFilter: (_req, file, callback) => {
-    const accepted = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!accepted.includes(file.mimetype)) return callback(Object.assign(new Error('Upload a JPG, PNG, or WEBP image.'), { status: 400 }));
+    const acceptedImages = ['image/jpeg', 'image/png', 'image/webp'];
+    const isPdf = file.mimetype === 'application/pdf'
+      || file.mimetype === 'application/x-pdf'
+      || /\.pdf$/i.test(file.originalname || '');
+    if (!acceptedImages.includes(file.mimetype) && !isPdf) {
+      return callback(Object.assign(new Error('Upload a JPG, PNG, WEBP image, or PDF document.'), { status: 400 }));
+    }
     callback(null, true);
   }
 });
@@ -250,19 +259,43 @@ app.post(['/api/analyze', '/analyze'], upload.single('image'), async (req, res, 
     const language = req.body?.language === 'hi' ? 'hi' : 'en';
     let text = typeof req.body?.text === 'string' ? req.body.text.trim() : '';
     let extractedText = '';
+    let documentInfo = null;
 
     if (req.file) {
-      const worker = await createWorker(OCR_LANGS);
-      try {
-        const result = await worker.recognize(req.file.buffer);
-        extractedText = String(result.data.text || '').trim();
-      } finally {
-        await worker.terminate();
+      const isPdf = req.file.mimetype === 'application/pdf'
+        || req.file.mimetype === 'application/x-pdf'
+        || /\.pdf$/i.test(req.file.originalname || '');
+
+      if (isPdf) {
+        if (req.file.size > MAX_PDF_BYTES) {
+          return res.status(413).json({ error: 'PDF is too large. Maximum size is 10 MB.' });
+        }
+        const pdfResult = await processPdf(req.file.buffer, { ocrLanguages: OCR_LANGS });
+        extractedText = pdfResult.text;
+        documentInfo = {
+          type: 'pdf',
+          fileName: basename(req.file.originalname || 'notice.pdf').slice(0, 120),
+          pageCount: pdfResult.pageCount,
+          processedPages: pdfResult.processedPages,
+          ocrPages: pdfResult.ocrPages,
+          textPages: pdfResult.textPages
+        };
+      } else {
+        if (req.file.size > MAX_IMAGE_BYTES) {
+          return res.status(413).json({ error: 'Image is too large. Maximum size is 5 MB.' });
+        }
+        const worker = await createWorker(OCR_LANGS);
+        try {
+          const result = await worker.recognize(req.file.buffer);
+          extractedText = String(result.data.text || '').trim();
+        } finally {
+          await worker.terminate();
+        }
       }
       if (extractedText) text = [text, extractedText].filter(Boolean).join('\n\n');
     }
 
-    if (!text) return res.status(400).json({ error: 'Paste notice text or upload a readable image.' });
+    if (!text) return res.status(400).json({ error: 'Paste notice text or upload a readable image or PDF.' });
     if (text.length > MAX_TEXT_CHARS) return res.status(413).json({ error: `Notice text is too long. Limit it to ${MAX_TEXT_CHARS.toLocaleString()} characters.` });
 
     let analysis;
@@ -276,7 +309,7 @@ app.post(['/api/analyze', '/analyze'], upload.single('image'), async (req, res, 
         ? 'AI सेवा अभी उपलब्ध नहीं है; यह नियम-आधारित डेमो विश्लेषण है, AI द्वारा सत्यापित नहीं। महत्वपूर्ण जानकारी मूल आधिकारिक नोटिस से जाँचें।'
         : 'AI service is unavailable right now; this is a rule-based demo analysis, not AI-verified. Check important details against the original official notice.');
     }
-    return res.json({ ...analysis, extractedText: extractedText || null, sourceTextLength: text.length });
+    return res.json({ ...analysis, extractedText: extractedText || null, sourceTextLength: text.length, documentInfo });
   } catch (error) {
     return next(error);
   }
@@ -285,7 +318,7 @@ app.post(['/api/analyze', '/analyze'], upload.single('image'), async (req, res, 
 app.use((error, _req, res, _next) => {
   if (error instanceof multer.MulterError) {
     const tooLarge = error.code === 'LIMIT_FILE_SIZE';
-    return res.status(tooLarge ? 413 : 400).json({ error: tooLarge ? 'Image is too large. Maximum size is 5 MB.' : 'Invalid upload.' });
+    return res.status(tooLarge ? 413 : 400).json({ error: tooLarge ? 'File is too large. Images are limited to 5 MB and PDFs to 10 MB.' : 'Invalid upload.' });
   }
   const status = Number(error.status) || 500;
   if (status >= 500) console.error('API error:', error.message);
