@@ -19,7 +19,7 @@
 
 Government notices, scholarship circulars, admission updates, and public-service documents often contain important information in dense language. FormSaathi AI helps users understand that information and identify what they may need to do next.
 
-Paste the notice text or upload a readable image. The application extracts and organizes key information into a plain-language summary, important points, dates, document mentions, eligibility clues, and an ordered action checklist. Results can include short evidence excerpts so users can compare them with the original notice.
+Paste the notice text, upload an image, or upload a PDF of up to 10 pages. Digital PDF text is extracted directly; scanned pages are rendered and OCR-processed page by page. The application organizes the resulting text into a plain-language summary, important points, dates, document mentions, eligibility clues, and an ordered action checklist. Results can include short evidence excerpts so users can compare them with the original notice.
 
 FormSaathi AI supports **English and Hindi** and provides a clearly labelled **Demo Mode** when AI analysis is not available.
 
@@ -39,7 +39,7 @@ FormSaathi AI supports **English and Hindi** and provides a clearly labelled **D
 - **Plain-language summaries:** Makes long or complicated notices easier to understand.
 - **Key information extraction:** Organizes key points, dates, document mentions, and eligibility clues.
 - **English and Hindi output:** Select the language for the analysis.
-- **Image-to-text OCR:** Reads JPG, PNG, and WEBP images using Tesseract.js, with English and Hindi language support.
+- **Image-to-text OCR:** Reads JPG, PNG, and WEBP images using Tesseract.js, with English and Hindi language support.\n- **Multi-page PDF support:** Processes PDFs up to 10 MB and 10 pages, extracting embedded text or OCRing scanned pages.\n- **Page-aware extraction:** Labels extracted text by page and reports which pages used OCR versus embedded text.
 - **Evidence-aware results:** Shows supporting excerpts and validates model-provided evidence against the submitted notice text.
 - **Action checklist:** Presents practical next steps based on the information found in the notice.
 - **Demo Mode:** Uses rule-based extraction when AI is not configured or unavailable. Demo output is identified as non-AI output.
@@ -83,7 +83,7 @@ The deployed application uses a separate frontend and backend on Vercel. The rep
 | --- | --- |
 | Frontend | HTML5, CSS3, Vanilla JavaScript |
 | Backend | Node.js, Express.js |
-| OCR and uploads | Tesseract.js, Multer |
+| OCR and uploads | Tesseract.js, Multer, PDF.js, @napi-rs/canvas |
 | AI integration | Gemini native \`:generateContent\` API format and OpenAI-compatible Chat Completions format |
 | Middleware and security | CORS, Helmet, express-rate-limit |
 | Configuration | dotenv, environment variables |
@@ -103,7 +103,7 @@ FormSaathi-AI/
 │   │   └── index.js          # Vercel serverless API entry point
 │   ├── test/
 │   │   └── api.test.js       # API smoke and regression tests
-│   ├── app.js                # Express routes, OCR and analysis
+│   ├── app.js                # Express routes, OCR and analysis\n│   ├── pdf-processing.js     # PDF text extraction and scanned-page OCR
 │   ├── index.js              # Firebase Functions v2 adapter
 │   ├── server.js             # Local development server
 │   ├── package.json
@@ -228,7 +228,7 @@ Accepts \`multipart/form-data\`.
 | --- | --- | --- |
 | \`text\` | String | Notice text. Maximum 30,000 characters. |
 | \`language\` | String | \`en\` or \`hi\`. Defaults to English. |
-| \`image\` | File | Optional JPG, PNG, or WEBP image. Maximum 5 MB. |
+| \`image\` | File | JPG, PNG, WEBP image (5 MB) or PDF (10 MB, up to 10 pages). |
 
 The response contains a structured analysis, including the mode, notice title, summary, key points, deadlines, required documents, eligibility clues, action checklist, caveats, and OCR text when an image was supplied.
 
@@ -266,7 +266,7 @@ The GitHub Actions workflow runs on pushes and pull requests targeting \`main\`.
 - When AI analysis is enabled, notice text is sent to the configured provider for processing. Review that provider's privacy, retention, and usage terms before submitting personal or sensitive information.
 - API keys must remain in backend environment variables. Never put them in frontend JavaScript, HTML, or public repository files.
 - The API applies upload limits, request rate limiting, security headers, and CORS origin checks. These controls reduce risk but do not guarantee complete security.
-- OCR quality depends on image clarity, orientation, handwriting, and document layout. Review extracted text for mistakes.
+- OCR quality depends on image clarity, orientation, handwriting, and document layout. Review extracted text for mistakes.\n- PDF processing is limited to 10 pages and 10 MB. Pages with embedded text are extracted directly; pages with little embedded text are rendered and OCR processed.
 - AI output can omit, misinterpret, or incorrectly summarize source content. Evidence matching is a verification aid, not a guarantee of correctness.
 - Demo Mode uses heuristics rather than an AI model and may miss context or dates.
 - Always confirm deadlines, eligibility, fees, and required documents with the original notice or the relevant official authority.
