@@ -19,8 +19,6 @@
     "firebase-functions": "^6.6.0",
     "helmet": "^8.0.0",
     "multer": "^2.0.0",
-    "tesseract.js": "^6.0.1",
-    "@napi-rs/canvas": "0.1.100",
-    "pdfjs-dist": "4.10.38"
+    "tesseract.js": "^6.0.1"
   }
 }
