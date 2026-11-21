@@ -50,8 +50,8 @@ FormSaathi AI supports **English and Hindi** and provides a clearly labelled **D
 
 ## How it works
 
-1. **Submit a notice:** Paste text or select, drop, or paste a supported image.
-2. **Extract text:** The backend uses Tesseract.js to recognize text in uploaded images.
+1. **Submit a notice:** Paste text or select, drop, or paste a supported image or PDF.
+2. **Extract text:** Images and scanned PDF pages use Tesseract.js; digital PDF pages use embedded text extraction.
 3. **Analyze content:** When configured, the backend sends the notice to the selected AI provider. Otherwise, it uses the rule-based Demo Mode.
 4. **Review the action brief:** The frontend displays the summary, key points, dates, document mentions, eligibility clues, evidence, and checklist.
 5. **Verify important details:** Compare the output with the original notice before acting on deadlines, eligibility, fees, or document requirements.
