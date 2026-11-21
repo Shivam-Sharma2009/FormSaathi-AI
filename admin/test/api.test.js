@@ -234,3 +234,36 @@ test('PDF processor rejects documents above the page limit', async () => {
     (error) => error.status === 413 && /up to 10 pages/i.test(error.message)
   );
 });
+
+test('PDF processor extracts digital text and OCRs only scan-like pages in a mixed document', async () => {
+  const calls = [];
+  const result = await processPdf(createTestPdf([
+    'A digitally readable scholarship notice with a deadline and required documents.',
+    ''
+  ]), {
+    ocrLanguages: 'eng',
+    ocrPage: async (_imageBuffer, pageNumber) => {
+      calls.push(pageNumber);
+      return 'Scanned page content: apply before 30 December 2026.';
+    }
+  });
+
+  assert.deepEqual(result.textPages, [1]);
+  assert.deepEqual(result.ocrPages, [2]);
+  assert.deepEqual(calls, [2]);
+  assert.match(result.text, /Page 1/);
+  assert.match(result.text, /Page 2/);
+  assert.match(result.text, /Scanned page content/);
+});
+
+test('PDF processor rejects malformed PDF input and caps extracted text', async () => {
+  await assert.rejects(
+    processPdf(Buffer.from('not a PDF document')),
+    (error) => error.status === 400 && /valid PDF/i.test(error.message)
+  );
+
+  await assert.rejects(
+    processPdf(createTestPdf(['x'.repeat(30_100)]), { ocrLanguages: 'eng' }),
+    (error) => error.status === 413 && /character limit/i.test(error.message)
+  );
+});
